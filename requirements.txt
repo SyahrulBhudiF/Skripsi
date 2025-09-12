@@ -6,6 +6,8 @@ pillow
 opencv-python
 basicsr
 
+tqdm
+
 # Numerical computing
 numpy>=1.24
 
