@@ -1,0 +1,25 @@
+torch==2.8.0
+torchaudio==2.8.0
+torchvision==0.23.0
+pillow
+
+opencv-python
+basicsr
+
+# Numerical computing
+numpy>=1.24
+
+# (Optional) For progress bars / pretty training logs
+tqdm>=4.66
+
+# (Optional) For visualization/debugging
+matplotlib>=3.7
+
+pip>=23.0
+ipykernel>=6.29
+
+kagglehub
+
+lightning
+
+scikit-learn
