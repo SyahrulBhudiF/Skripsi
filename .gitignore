@@ -1,3 +1,7 @@
 .venv/
 lightning_logs/
 SAMM/
+data_raw/
+data_frame_raw/
+testing_preprocess/
+testing_output/
