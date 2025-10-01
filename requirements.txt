@@ -27,3 +27,8 @@ kagglehub
 lightning
 
 scikit-learn
+
+optuna
+
+optuna-dashboard
+optuna-integration[pytorch_lightning]
