@@ -6,4 +6,5 @@ data_frame_raw/
 testing_preprocess/
 testing_output/
 gfpgan/
+onset_apex/
 *.pth

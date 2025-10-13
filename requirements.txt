@@ -4,9 +4,9 @@
 pillow
 
 opencv-python
-realesrgan
-facenet-pytorch
-gfpgan
+# realesrgan
+# facenet-pytorch
+# gfpgan
 
 tqdm
 
