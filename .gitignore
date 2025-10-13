@@ -7,3 +7,4 @@ testing_preprocess/
 testing_output/
 gfpgan/
 *.pth
+checkpoints/
