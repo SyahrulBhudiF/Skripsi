@@ -2,6 +2,8 @@
 # torchaudio==2.8.0
 # torchvision==0.23.0
 pillow
+pandas
+openpyxl
 
 opencv-python
 # realesrgan
