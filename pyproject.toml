@@ -1,0 +1,28 @@
+[project]
+name = "project"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+
+dependencies = [
+    # "torch",
+    # "torchvision",
+    # "torchaudio",
+    "pillow",
+    "pandas",
+    "openpyxl",
+    "opencv-python",
+    "tqdm",
+    "numpy",
+    "matplotlib",
+    "ipykernel",
+    "kagglehub",
+    "lightning",
+    "scikit-learn",
+    "optuna",
+    "optuna-dashboard",
+    "optuna-integration[pytorch_lightning]",
+    "tabulate",
+    "seaborn",
+    "dlib",
+    "tensorboard",
+]
