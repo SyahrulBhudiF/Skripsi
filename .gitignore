@@ -12,4 +12,7 @@ checkpoints/
 Casme3/
 features_grouped/
 models/
-
+testing/
+new_images/
+tabr_experiment/
+__pycache__/
