@@ -15,4 +15,7 @@ models/
 testing/
 new_images/
 tabr_experiment/
+output/frames/
+output/magnitudes/
+dataset/
 __pycache__/

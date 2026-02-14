@@ -1127,6 +1127,7 @@ dependencies = [
     { name = "seaborn" },
     { name = "tabulate" },
     { name = "tensorboard" },
+    { name = "torch" },
     { name = "torchvision" },
     { name = "tqdm" },
 ]
@@ -1152,6 +1153,7 @@ requires-dist = [
     { name = "seaborn" },
     { name = "tabulate" },
     { name = "tensorboard" },
+    { name = "torch" },
     { name = "torchvision" },
     { name = "tqdm" },
 ]
