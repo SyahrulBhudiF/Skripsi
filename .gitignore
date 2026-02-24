@@ -20,3 +20,6 @@ output/magnitudes/
 output/
 dataset/
 __pycache__/
+.claude/
+AGENTS.md
+*.md
