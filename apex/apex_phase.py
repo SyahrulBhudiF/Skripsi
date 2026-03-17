@@ -83,6 +83,13 @@ class ApexPhase:
         # ── Auto-merge: gabungkan puncak yang terlalu berdekatan ──
         peaks = self.merge_nearby_peaks(signal, peaks, merge_distance=self.merge_distance)
 
+        # ── Top-K filter: ambil k puncak dengan nilai sinyal tertinggi ──
+        # k=0 → kembalikan semua (skip filter)
+        if k > 0 and len(peaks) > k:
+            # Gunakan signal Python list langsung (bukan numpy) agar type-safe
+            peaks = sorted(peaks, key=lambda p: signal[p], reverse=True)[:k]
+            peaks = sorted(peaks)  # kembalikan ke urutan kronologis (ascending)
+
         return peaks
 
 

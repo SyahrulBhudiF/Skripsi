@@ -26,5 +26,6 @@ dependencies = [
     "dlib",
     "tensorboard",
     "moviepy",
-    "faiss-cpu"
+    "faiss-cpu",
+    "ipywidgets>=8.1.8",
 ]

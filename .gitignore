@@ -18,6 +18,7 @@ tabr_experiment/
 output/frames/
 output/magnitudes/
 output/
+output_casme2/
 dataset/
 __pycache__/
 .claude/
