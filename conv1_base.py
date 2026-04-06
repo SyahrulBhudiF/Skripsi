@@ -19,7 +19,7 @@ from lightning.pytorch.callbacks import EarlyStopping
 # --- 1. Revised Model Architecture ---
 # Based on the paper's description and diagram[cite: 189, 384].
 # Key changes: Added U-Net style skip connections and adjusted decoder to match the diagram.
-class ConVAT(nn.Module):
+class %(nn.Module):
     def __init__(self, in_channels=1, num_classes=8):
         """
         Revised implementation of the ConVAT model architecture.

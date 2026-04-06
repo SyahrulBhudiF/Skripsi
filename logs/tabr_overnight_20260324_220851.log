@@ -1,0 +1,11 @@
+[2026-03-24 22:08:51] START finetune
+Traceback (most recent call last):
+  File "/home/ryuko/Documents/Codes/Python/Skripsi/Convat-1st/third_party/tabular-dl-tabr-official/bin/go.py", line 52, in <module>
+    lib.run_cli(main)
+  File "/home/ryuko/Documents/Codes/Python/Skripsi/Convat-1st/third_party/tabular-dl-tabr-official/lib/util.py", line 535, in run_cli
+    return fn(**vars(args))
+           ^^^^^^^^^^^^^^^^
+  File "/home/ryuko/Documents/Codes/Python/Skripsi/Convat-1st/third_party/tabular-dl-tabr-official/bin/go.py", line 42, in main
+    assert function is not None
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError

@@ -23,7 +23,8 @@ class LitTabR(pl.LightningModule):
         encoder_blocks=0,
         dropout=0.1,
         lr=1e-3,
-        freeze_context_epoch=5
+        freeze_context_epoch=5,
+        class_weights=None,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -41,14 +42,20 @@ class LitTabR(pl.LightningModule):
             nn.Linear(d, d)
         )
         self.head = nn.Linear(d, num_classes)
-        self.loss_fn = nn.CrossEntropyLoss()
+
+        if class_weights is not None:
+            class_weights = torch.as_tensor(class_weights, dtype=torch.float32)
+            self.register_buffer("class_weights", class_weights)
+            self.loss_fn = nn.CrossEntropyLoss(weight=self.class_weights)
+        else:
+            self.class_weights = None
+            self.loss_fn = nn.CrossEntropyLoss()
 
         # context state
         self.ctx_frozen = False
         self.ctx_k = None
         self.ctx_y = None
         self.faiss_index = None
-        self.ctx_val_ready = False
 
         # inference helpers
         self.imputer = None
@@ -139,12 +146,9 @@ class LitTabR(pl.LightningModule):
         print("Context frozen & FAISS built")
 
     def on_validation_epoch_start(self):
-        if self.ctx_val_ready:
-            return
-
         device = self.get_device()
-        ctx_x = self.trainer.datamodule.ctx_val_x.to(device)
-        ctx_y = self.trainer.datamodule.ctx_val_y.to(device)
+        ctx_x = self.trainer.datamodule.ctx_train_x.to(device)
+        ctx_y = self.trainer.datamodule.ctx_train_y.to(device)
 
         self.encoder.eval()
         with torch.no_grad():
@@ -153,8 +157,7 @@ class LitTabR(pl.LightningModule):
             self.ctx_y = ctx_y
 
         self.build_faiss()
-        self.ctx_val_ready = True
-        print("Validation context frozen & FAISS built")
+        print("Validation context rebuilt from train context")
 
     def set_context(self, ctx_x, ctx_y):
         device = self.get_device()
