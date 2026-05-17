@@ -1,0 +1,24 @@
+file,seed,external,freeze,lr,m_neighbors,patience,split,checkpoint,notes
+export_apex_tabr_train_test_v10.ipynb,42,4,MAX_EPOCHS // 4,3e-4,4,10,event_clip_split,yes,
+export_apex_tabr_train_test_v11.ipynb,42,4,MAX_EPOCHS // 4,3e-4,4,10,event_clip_split,yes,
+export_apex_tabr_train_test_v12.ipynb,42,20,MAX_EPOCHS // 4,3e-4,8,6,event_clip_split,yes,phase_dir outputs
+export_apex_tabr_train_test_v13.ipynb,42,20,MAX_EPOCHS // 4,3e-4,8,6,event_clip_split,yes,phase_dir outputs
+export_apex_tabr_train_test_v14.ipynb,42,20,MAX_EPOCHS // 4,3e-4,8,6,event_clip_split,yes,
+export_apex_tabr_train_test_v15.ipynb,42,20,16,5.216476754618595e-4,8,10,event_clip_split,yes,
+export_apex_tabr_train_test_v16.ipynb,42,20,16,5.216476754618595e-4,8,10,balanced_train_clips,yes,balanced clips
+export_apex_tabr_train_test_v17.ipynb,42,20,"params['freeze_context_epoch'],","params['lr'],",,trial.suggest_int('patience',balanced_train_clips,yes,balanced clips
+export_apex_tabr_train_test_v18.ipynb,42,20,16,5.34e-4,8,8,balanced_train_clips,yes,balanced clips
+export_apex_tabr_train_test_v19.ipynb,42,20,11,5.34e-4,8,8,balanced_train_clips,yes,balanced clips
+export_apex_tabr_train_test_v2.ipynb,42,20,"max(1, MAX_EPOCHS // 4),",,,,event_clip_split,no,
+export_apex_tabr_train_test_v20.ipynb,72,20,11,5.34e-4,8,8,balanced_train_clips,yes,balanced clips; random seed 72
+export_apex_tabr_train_test_v21.ipynb,72,20,11,5.34e-4,8,8,loso,yes,balanced clips; LOSO; random seed 72
+export_apex_tabr_train_test_v3.ipynb,42,20,"max(1, MAX_EPOCHS // 4),",,,,event_clip_split,no,
+export_apex_tabr_train_test_v4.ipynb,42,20,20,3e-4,4,6,event_clip_split,yes,
+export_apex_tabr_train_test_v5.ipynb,42,20,20,3e-4,4,6,event_clip_split,yes,
+export_apex_tabr_train_test_v6.ipynb,42,20,20,3e-4,4,6,event_clip_split,yes,
+export_apex_tabr_train_test_v7.ipynb,42,20,20,3e-4,4,6,event_clip_split,yes,
+export_apex_tabr_train_test_v8.ipynb,42,20,6,3e-4,4,10,event_clip_split,yes,
+export_apex_tabr_train_test_v9.ipynb,42,20,MAX_EPOCHS // 4,3e-4,8,6,event_clip_split,yes,
+preproces-tabr.ipynb,42,2,"max_epochs // 4,",,,,subject_split,no,
+preprocess-cnn.ipynb,42,2,,1e-3):,,,subject_split,no,
+preproces-anxiety.ipynb,42,2,,,,,subject_split,no,
