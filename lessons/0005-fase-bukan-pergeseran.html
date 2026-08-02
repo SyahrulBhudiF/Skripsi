@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lesson 0005 — Fase Bukan Pergeseran</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:880px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.ok{background:#eef9f0;border-left:4px solid #2e9d4d;padding:12px 16px}.fix{background:#fff7ed;border-left:4px solid #e07a1f;padding:12px 16px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:22px;font-weight:800;color:#4b50a8}.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}.box{border-radius:10px;padding:14px;background:#f7f7fb}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}code{background:#eee;padding:2px 5px;border-radius:4px}</style>
+</head>
+<body>
+<h1>Fase Bukan Pergeseran</h1>
+<p>Target: luruskan satu detail penting biar jawaban presentasi kamu tajam.</p>
+
+<h2>Feedback</h2>
+<div class="ok"><b>Benar:</b> POC = Phase-Only Correlation.</div>
+<div class="fix"><b>Hampir:</b> fase bukan “pergeseran pola”. Fase adalah <b>posisi pola</b>. Pergeseran pola terlihat dari <b>perubahan fase</b>.</div>
+<div class="ok"><b>Benar arah:</b> POC fokus pada struktur/posisi pola, bukan warna atau kontras mentah.</div>
+
+<h2>Kalimat yang harus nempel</h2>
+<div class="card">
+<p class="big">Fase = posisi pola.</p>
+<p class="big">Perubahan fase = tanda pola bergeser.</p>
+<p>Jadi kalau ditanya “fase itu apa?”, jangan jawab “pergeseran pola”. Jawab:</p>
+<p><b>“Fase adalah informasi posisi pola pada gambar. Kalau pola bergeser, fasenya berubah.”</b></p>
+</div>
+
+<h2>Bedakan dua hal</h2>
+<div class="compare">
+<div class="box">
+<h3>Fase</h3>
+<p>Informasi letak/posisi pola.</p>
+<p>Contoh: garis alis ada di posisi tertentu dalam block.</p>
+</div>
+<div class="box">
+<h3>Pergeseran</h3>
+<p>Perubahan letak pola antar frame.</p>
+<p>Contoh: garis alis pindah 2 pixel ke kanan.</p>
+</div>
+</div>
+
+<h2>Kenapa POC pakai fase?</h2>
+<div class="card">
+<p>Karena tugas kita mencari <b>gerakan kecil</b>.</p>
+<p>Gerakan kecil = pola yang sama pindah sedikit.</p>
+<p>POC membandingkan fase dua block. Dari beda fase itu, muncul puncak korelasi. Posisi puncak dipakai untuk estimasi <code>X,Y</code>.</p>
+</div>
+
+<h2>Jawaban presentasi versi rapi</h2>
+<div class="card">
+<p><b>POC</b> adalah Phase-Only Correlation. Metode ini membandingkan dua block gambar dengan fokus pada informasi fase.</p>
+<p><b>Fase</b> dapat dipahami sebagai informasi posisi pola pada gambar. Ketika pola pada block bergeser antar frame, fase juga berubah.</p>
+<p>Perubahan fase ini menghasilkan <b>puncak korelasi</b>. Lokasi puncak korelasi digunakan untuk memperkirakan pergeseran block dalam bentuk <code>X</code> dan <code>Y</code>.</p>
+</div>
+
+<h2>Latihan</h2>
+<div class="quiz">
+<ol>
+<li>Fase itu posisi pola atau pergeseran pola?</li>
+<li>Pergeseran pola terlihat dari apa?</li>
+<li>Output awal dari lokasi puncak korelasi apa?</li>
+</ol>
+<p><b>Kunci:</b> posisi pola; perubahan fase; X dan Y.</p>
+</div>
+</body>
+</html>

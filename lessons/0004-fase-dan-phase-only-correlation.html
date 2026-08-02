@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lesson 0004 — Fase dan Phase-Only Correlation</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:900px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:22px;font-weight:800;color:#4b50a8}.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}.box{background:#7779c4;color:white;border-radius:9px;padding:14px;text-align:center}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}.ok{background:#eef9f0;border-left:4px solid #2e9d4d;padding:12px 16px}.fix{background:#fff7ed;border-left:4px solid #e07a1f;padding:12px 16px}code{background:#eee;padding:2px 5px;border-radius:4px}</style>
+</head>
+<body>
+<h1>Fase &amp; Phase-Only Correlation</h1>
+<p>Target lesson: kamu hafal kepanjangan POC dan punya gambaran “fase” tanpa pusing matematika.</p>
+
+<h2>Feedback cepat</h2>
+<div class="ok">Jawaban kamu benar: tidak ada gerak; output awal X,Y; ABS lebih simpel karena membandingkan block posisi sama.</div>
+
+<h2>1. Kepanjangan POC</h2>
+<div class="card">
+<p class="big">POC = Phase-Only Correlation</p>
+<p>Artinya: korelasi yang fokus pada <b>fase saja</b>.</p>
+<p>Kalimat hafalan:</p>
+<p><b>“Phase-Only Correlation adalah metode mencocokkan dua gambar/block dengan fokus pada beda fase untuk mencari pergeseran.”</b></p>
+</div>
+
+<h2>2. Fase itu apa?</h2>
+<div class="card">
+<p>Versi gampang:</p>
+<p class="big">Fase = informasi posisi pola.</p>
+<p>Dalam gambar, pola bisa berupa tepi mata, lipatan mulut, garis alis, tekstur kulit.</p>
+<p>Kalau pola yang sama bergeser sedikit, “bentuknya” masih mirip, tapi <b>posisinya berubah</b>. Perubahan posisi itu kebaca sebagai perubahan fase.</p>
+</div>
+
+<h2>3. Analogi paling gampang</h2>
+<div class="card">
+<p>Bayangkan suara tepuk tangan:</p>
+<ul>
+<li><b>Amplitudo</b> = seberapa keras tepuknya.</li>
+<li><b>Fase</b> = kapan tepuk itu terjadi / posisinya di waktu.</li>
+</ul>
+<p>Untuk gambar:</p>
+<ul>
+<li><b>Amplitudo</b> = seberapa kuat tekstur/kontras.</li>
+<li><b>Fase</b> = di mana letak pola itu.</li>
+</ul>
+<p>Karena POC ingin tahu <b>pola bergeser ke mana</b>, maka yang penting adalah fase.</p>
+</div>
+
+<h2>4. Kenapa “Only”?</h2>
+<div class="card">
+<p>“Only” berarti amplitudo dinormalisasi/dikurangi pengaruhnya.</p>
+<p>Yang dipakai terutama beda fase antara dua block:</p>
+<div class="flow">
+<div class="box">Block Frame t</div><div class="box">Ambil Fase</div><div class="box">Bandingkan</div>
+<div class="box">Block Frame t+1</div><div class="box">Ambil Fase</div><div class="box">Cari Puncak</div>
+</div>
+<p>Jadi POC tidak sekadar “gambar terang/gelapnya mirip”, tapi “pola di gambar ini bergeser ke posisi mana”.</p>
+</div>
+
+<h2>5. Puncak korelasi nyambungnya ke mana?</h2>
+<div class="card">
+<p>Setelah dua fase dibandingkan, POC menghasilkan peta korelasi.</p>
+<p class="big">Puncak korelasi = tebakan posisi geser terbaik.</p>
+<ul>
+<li>Puncak di tengah → block tidak bergeser.</li>
+<li>Puncak ke kanan → pola bergeser ke kanan.</li>
+<li>Puncak ke atas → pola bergeser ke atas.</li>
+</ul>
+<p>Dari lokasi puncak ini keluar <code>X</code> dan <code>Y</code>.</p>
+</div>
+
+<h2>6. Narasi presentasi 20 detik</h2>
+<div class="card">
+<p>“POC adalah Phase-Only Correlation, yaitu metode pencocokan block gambar yang fokus pada informasi fase. Fase dapat dipahami sebagai informasi posisi pola pada gambar. Ketika pola pada ROI bergeser dari frame t ke frame berikutnya, perubahan fase akan menghasilkan puncak korelasi. Posisi puncak ini dipakai untuk memperkirakan pergeseran X dan Y.”</p>
+</div>
+
+<h2>Latihan</h2>
+<div class="quiz">
+<ol>
+<li>POC kepanjangannya apa?</li>
+<li>Fase versi gampang artinya apa?</li>
+<li>Kenapa POC cocok untuk mencari pergeseran?</li>
+</ol>
+<p><b>Kunci:</b> Phase-Only Correlation; informasi posisi pola; karena pergeseran pola terbaca dari perubahan fase.</p>
+</div>
+</body>
+</html>

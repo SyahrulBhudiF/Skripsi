@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Lesson 0009 — Context TABR Lebih Detail</title>
+<style>body{font-family:Inter,Arial,sans-serif;max-width:920px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.ok{background:#eef9f0;border-left:4px solid #2e9d4d;padding:12px 16px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:21px;font-weight:800;color:#4b50a8}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.box{background:#7779c4;color:#fff;border-radius:9px;padding:12px;text-align:center;min-height:46px;display:flex;align-items:center;justify-content:center}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}code{background:#eee;padding:2px 5px;border-radius:4px}pre{background:#f7f7fb;border-radius:10px;padding:12px;overflow:auto}</style></head>
+<body>
+<h1>TABR: Context Itu Apa Tepatnya?</h1>
+<p>Target: paham isi context, bukan cuma “tetangga mirip”.</p>
+
+<h2>Feedback</h2>
+<div class="ok">Jawaban kamu benar: retrieval cari data mirip, predictor menghasilkan skor, context berasal dari tetangga mirip.</div>
+
+<h2>1. Context bukan cuma tetangga</h2>
+<div class="card">
+<p class="big">Context = informasi ringkas dari beberapa tetangga terdekat.</p>
+<p>Di TABR, context dibentuk dari 3 bahan:</p>
+<ol>
+<li><b>Siapa tetangganya</b>: indeks data train yang mirip.</li>
+<li><b>Label tetangga</b>: target/y dari data train mirip.</li>
+<li><b>Perbedaan representasi</b>: seberapa beda input dengan tetangga di ruang laten.</li>
+</ol>
+</div>
+
+<h2>2. Alur context di kode</h2>
+<div class="flow">
+<div class="box">k input</div><div class="box">candidate_k</div><div class="box">FAISS search</div><div class="box">context_idx</div>
+<div class="box">candidate_y</div><div class="box">label_encoder</div><div class="box">T(k - context_k)</div><div class="box">context_x</div>
+</div>
+
+<div class="card">
+<pre><code>distances, context_idx = self.search_index.search(k, context_size)
+context_y_emb = self.label_encoder(candidate_y[context_idx][..., None])
+values = context_y_emb + self.T(k[:, None] - context_k)
+context_x = (probs[:, None] @ values).squeeze(1)</code></pre>
+</div>
+
+<h2>3. Arti kode itu</h2>
+<div class="card">
+<p><code>context_idx</code> = tetangga mana yang paling dekat.</p>
+<p><code>context_y_emb</code> = label tetangga diubah jadi vektor.</p>
+<p><code>k - context_k</code> = beda input dengan tetangga.</p>
+<p><code>probs</code> = bobot kemiripan; tetangga lebih mirip dapat bobot lebih besar.</p>
+<p><code>context_x</code> = rata-rata berbobot dari informasi tetangga.</p>
+</div>
+
+<h2>4. Analogi sederhana</h2>
+<div class="card">
+<p>Pasien baru mirip 3 pasien lama:</p>
+<ul>
+<li>Pasien A: anxiety tinggi, sangat mirip → bobot besar.</li>
+<li>Pasien B: anxiety rendah, agak mirip → bobot kecil.</li>
+<li>Pasien C: anxiety tinggi, mirip → bobot sedang.</li>
+</ul>
+<p>Context bukan cuma “mayoritas tinggi”. Context juga mempertimbangkan <b>seberapa mirip</b> dan <b>apa bedanya</b> pasien baru dari pasien lama.</p>
+</div>
+
+<h2>5. Kalimat presentasi</h2>
+<div class="card">
+<p><b>“Context pada TABR dibentuk dari sampel training yang paling mirip. Model mengambil label tetangga, menghitung perbedaan representasi antara input dan tetangga, lalu menggabungkannya dengan bobot kemiripan. Context ini kemudian ditambahkan ke representasi input sebelum masuk predictor.”</b></p>
+</div>
+
+<h2>Latihan</h2>
+<div class="quiz">
+<ol>
+<li>Context berisi label tetangga saja atau label + beda representasi?</li>
+<li>Tetangga yang lebih mirip bobotnya lebih besar atau lebih kecil?</li>
+<li>Context ditambahkan ke apa?</li>
+</ol>
+<p><b>Kunci:</b> label + beda representasi; lebih besar; representasi input.</p>
+</div>
+</body></html>

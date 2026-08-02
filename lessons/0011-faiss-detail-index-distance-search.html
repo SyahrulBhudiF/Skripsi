@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Lesson 0011 — FAISS Detail</title>
+<style>body{font-family:Inter,Arial,sans-serif;max-width:980px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.ok{background:#eef9f0;border-left:4px solid #2e9d4d;padding:12px 16px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:21px;font-weight:800;color:#4b50a8}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}.box{background:#7779c4;color:#fff;border-radius:9px;padding:12px;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center}.mini{background:#f7f7fb;border-radius:10px;padding:12px 14px}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}.abc li{margin:8px 0}code{background:#eee;padding:2px 5px;border-radius:4px}pre{background:#f7f7fb;border-radius:10px;padding:12px;overflow:auto}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{border:1px solid #ddd;padding:8px;text-align:left}</style></head>
+<body>
+<h1>FAISS Detail: Index, Distance, Search</h1>
+<p>Target: bukan cuma tahu FAISS “mencari vektor mirip”, tapi paham cara hitung dan outputnya.</p>
+
+<h2>Feedback quiz</h2>
+<div class="ok">Jawaban kamu benar semua: <b>B, A, B, A, B</b>.</div>
+
+<h2>1. FAISS bekerja di dunia vektor</h2>
+<div class="card">
+<p class="big">Semua data harus jadi vektor angka dulu.</p>
+<p>FAISS tidak paham “pasien”, “anxiety”, “fitur POC”, atau “tabular”. FAISS cuma melihat angka:</p>
+<pre><code>query k       = [0.2, 0.8]
+candidate A   = [0.1, 0.7]
+candidate B   = [3.0, 2.9]
+candidate C   = [0.4, 1.0]</code></pre>
+<p>Tugas FAISS: cari candidate mana yang jaraknya paling dekat dengan query.</p>
+</div>
+
+<h2>2. Jarak L2 itu apa?</h2>
+<div class="card">
+<p><b>L2</b> = Euclidean distance. Versi 2D:</p>
+<pre><code>distance = sqrt((x1 - x2)^2 + (y1 - y2)^2)</code></pre>
+<p>Contoh query <code>[0.2, 0.8]</code> dan candidate A <code>[0.1, 0.7]</code>:</p>
+<pre><code>distance = sqrt((0.2-0.1)^2 + (0.8-0.7)^2)
+         = sqrt(0.01 + 0.01)
+         = 0.141</code></pre>
+<p>Semakin kecil jarak, semakin mirip.</p>
+</div>
+
+<h2>3. Search top-k</h2>
+<div class="card">
+<p>Kalau <code>context_size = 3</code>, FAISS mengambil 3 tetangga terdekat.</p>
+<table><tr><th>Candidate</th><th>Jarak ke query</th><th>Urutan</th></tr><tr><td>A</td><td>0.141</td><td>1</td></tr><tr><td>C</td><td>0.283</td><td>2</td></tr><tr><td>B</td><td>3.466</td><td>3</td></tr></table>
+<p>Output FAISS:</p>
+<pre><code>distances   = [[0.141, 0.283, 3.466]]
+context_idx = [[0,     2,     1    ]]</code></pre>
+<p><code>context_idx</code> berarti: tetangga terdekat adalah candidate ke-0, lalu ke-2, lalu ke-1.</p>
+</div>
+
+<h2>4. Apa itu index?</h2>
+<div class="card">
+<p class="big">Index = struktur penyimpanan vektor agar bisa dicari.</p>
+<p>Di TABR:</p>
+<pre><code>self.search_index = faiss.IndexFlatL2(d_main)
+self.search_index.add(candidate_k)
+distances, context_idx = self.search_index.search(k, context_size)</code></pre>
+<ul>
+<li><code>d_main</code>: panjang vektor laten.</li>
+<li><code>candidate_k</code>: semua vektor kandidat dari data train.</li>
+<li><code>k</code>: vektor query/input saat ini.</li>
+<li><code>context_size</code>: jumlah tetangga yang diminta.</li>
+</ul>
+</div>
+
+<h2>5. Kenapa disebut Flat?</h2>
+<div class="card">
+<p><b>Flat</b> berarti exact search: query dibandingkan dengan semua candidate.</p>
+<div class="grid">
+<div class="mini"><b>Kelebihan</b><br>Hasil tepat. Tidak approximate.</div>
+<div class="mini"><b>Kekurangan</b><br>Kalau candidate sangat banyak, bisa berat.</div>
+</div>
+<p>Official docs menyebut <code>IndexFlatL2</code> sebagai index untuk L2 search. Ia tidak butuh training index.</p>
+</div>
+
+<h2>6. Kenapa TABR reset lalu add lagi?</h2>
+<div class="card">
+<pre><code>self.search_index.reset()
+self.search_index.add(candidate_k)</code></pre>
+<p>Karena candidate representation bisa berubah selama training. Encoder masih belajar, jadi <code>candidate_k</code> epoch/batch ini bisa berbeda dari sebelumnya.</p>
+<p>Maka index dibersihkan, lalu diisi ulang dengan candidate terbaru.</p>
+</div>
+
+<h2>7. Di training, kenapa diri sendiri dibuang?</h2>
+<div class="card">
+<p>Saat training, batch train sempat ditambahkan ke candidate:</p>
+<pre><code>candidate_k = torch.cat([k, candidate_k])
+candidate_y = torch.cat([y, candidate_y])</code></pre>
+<p>Masalah: data input bisa menemukan dirinya sendiri sebagai tetangga terdekat. Itu leakage.</p>
+<p>Solusi kode: jika index tetangga sama dengan dirinya sendiri, jaraknya dibuat <code>inf</code>, lalu dibuang dari context.</p>
+</div>
+
+<h2>8. FAISS dalam TABR, satu kalimat</h2>
+<div class="card">
+<p><b>“FAISS dipakai TABR untuk mencari top-k vektor training yang paling dekat dengan vektor input di ruang laten, lalu indeks tetangga itu dipakai untuk membentuk context.”</b></p>
+</div>
+
+<h2>Soal ABC level 2</h2>
+<div class="quiz">
+<p><b>1. Jika jarak L2 makin kecil, artinya candidate...</b></p>
+<ol class="abc" type="A"><li>makin mirip query</li><li>makin jauh dari query</li><li>makin banyak fiturnya</li></ol>
+<p><b>2. Pada <code>search(k, 5)</code>, angka 5 berarti...</b></p>
+<ol class="abc" type="A"><li>panjang vektor</li><li>jumlah tetangga</li><li>jumlah label</li></ol>
+<p><b>3. <code>distances</code> berisi...</b></p>
+<ol class="abc" type="A"><li>jarak query ke tetangga</li><li>label tiap tetangga</li><li>kolom fitur tabular</li></ol>
+<p><b>4. Kenapa diri sendiri dibuang saat training?</b></p>
+<ol class="abc" type="A"><li>agar tidak data leakage</li><li>agar label hilang</li><li>agar dimensi berubah</li></ol>
+<p><b>5. <code>IndexFlatL2</code> termasuk...</b></p>
+<ol class="abc" type="A"><li>exact L2 search</li><li>image detector</li><li>loss function</li></ol>
+<p><b>Kunci:</b> 1A, 2B, 3A, 4A, 5A.</p>
+</div>
+</body></html>

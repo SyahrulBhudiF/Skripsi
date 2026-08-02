@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Lesson 0010 — FAISS untuk TABR</title>
+<style>body{font-family:Inter,Arial,sans-serif;max-width:940px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:21px;font-weight:800;color:#4b50a8}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}.box{background:#7779c4;color:#fff;border-radius:9px;padding:12px;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}.abc li{margin:8px 0}code{background:#eee;padding:2px 5px;border-radius:4px}pre{background:#f7f7fb;border-radius:10px;padding:12px;overflow:auto}a{color:#4b50a8}</style></head>
+<body>
+<h1>FAISS untuk TABR</h1>
+<p>Target: paham FAISS itu apa, cara kerjanya, dan kenapa dipakai di TABR.</p>
+<p>Sumber utama: <a href="https://github.com/facebookresearch/faiss/wiki/getting-started">FAISS Getting Started</a>, <a href="https://faiss.ai/cpp_api/struct/structfaiss_1_1IndexFlatL2.html">IndexFlatL2 docs</a>.</p>
+
+<h2>1. FAISS itu apa?</h2>
+<div class="card">
+<p class="big">FAISS = library untuk mencari vektor yang paling mirip / paling dekat.</p>
+<p>Nama lengkapnya: <b>Facebook AI Similarity Search</b>.</p>
+<p>Input FAISS adalah kumpulan vektor. Query juga vektor. Outputnya adalah tetangga terdekat dari query.</p>
+</div>
+
+<h2>2. Kenapa TABR butuh FAISS?</h2>
+<div class="card">
+<p>TABR punya representasi laten <code>k</code> untuk input baru.</p>
+<p>TABR juga punya banyak representasi kandidat dari data training: <code>candidate_k</code>.</p>
+<p>Masalahnya: input ini paling mirip dengan data training yang mana?</p>
+<p>FAISS menjawab itu dengan cepat.</p>
+</div>
+
+<h2>3. Cara kerja FAISS versi sederhana</h2>
+<div class="flow">
+<div class="box">Buat index</div><div class="box">Masukkan candidate_k</div><div class="box">Query pakai k</div><div class="box">Hitung jarak</div><div class="box">Ambil top-k terdekat</div>
+</div>
+<div class="card">
+<pre><code>self.search_index = faiss.IndexFlatL2(d_main)
+self.search_index.reset()
+self.search_index.add(candidate_k)
+distances, context_idx = self.search_index.search(k, context_size)</code></pre>
+</div>
+
+<h2>4. Apa itu IndexFlatL2?</h2>
+<div class="card">
+<p><b>Index</b> = tempat FAISS menyimpan vektor agar bisa dicari.</p>
+<p><b>Flat</b> = exact search. Ia membandingkan query dengan semua vektor kandidat.</p>
+<p><b>L2</b> = jarak Euclidean. Semakin kecil jaraknya, semakin mirip.</p>
+<p>Jadi <code>IndexFlatL2</code> artinya: cari tetangga terdekat secara exact memakai jarak L2.</p>
+</div>
+
+<h2>5. Output FAISS</h2>
+<div class="card">
+<p>FAISS mengembalikan dua hal:</p>
+<ul>
+<li><code>distances</code>: jarak query ke tetangga.</li>
+<li><code>context_idx</code>: indeks tetangga di data kandidat.</li>
+</ul>
+<p>Di TABR, <code>context_idx</code> dipakai untuk mengambil:</p>
+<ul>
+<li>representasi tetangga: <code>context_k = candidate_k[context_idx]</code></li>
+<li>label tetangga: <code>candidate_y[context_idx]</code></li>
+</ul>
+</div>
+
+<h2>6. Analogi</h2>
+<div class="card">
+<p>Bayangkan perpustakaan kasus lama.</p>
+<ul>
+<li>Setiap kasus lama punya kartu ringkasan angka.</li>
+<li>Pasien baru juga dibuatkan kartu ringkasan angka.</li>
+<li>FAISS mencari kartu lama yang paling dekat dengan kartu pasien baru.</li>
+<li>Kartu terdekat itu menjadi context untuk membantu prediksi.</li>
+</ul>
+</div>
+
+<h2>7. Soal ABC</h2>
+<div class="quiz">
+<p><b>1. FAISS dipakai untuk apa?</b></p>
+<ol class="abc" type="A"><li>Menggambar grafik loss</li><li>Mencari vektor paling mirip</li><li>Menghapus fitur kosong</li></ol>
+<p><b>2. Pada <code>IndexFlatL2</code>, L2 berarti apa?</b></p>
+<ol class="abc" type="A"><li>Jarak Euclidean</li><li>Jumlah kelas label</li><li>Ukuran batch train</li></ol>
+<p><b>3. Output <code>context_idx</code> berisi apa?</b></p>
+<ol class="abc" type="A"><li>Nilai loss model</li><li>Indeks tetangga terdekat</li><li>Nama kolom dataset</li></ol>
+<p><b>4. Dalam TABR, FAISS mencari kemiripan antara apa?</b></p>
+<ol class="abc" type="A"><li>k input dan candidate_k</li><li>label input dan label output</li><li>gambar wajah dan ROI</li></ol>
+<p><b>5. Semakin kecil jarak L2, artinya?</b></p>
+<ol class="abc" type="A"><li>Semakin tidak mirip</li><li>Semakin mirip</li><li>Semakin banyak kelas</li></ol>
+<p><b>Kunci:</b> 1B, 2A, 3B, 4A, 5B.</p>
+</div>
+</body></html>

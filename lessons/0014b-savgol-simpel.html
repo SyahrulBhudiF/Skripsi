@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Savitzky-Golay versi Gampang</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:880px;margin:38px auto;line-height:1.7;color:#111}
+h1{font-size:28px;margin-bottom:8px}
+.sub{color:#555;font-size:16px}
+.card{border:1px solid #ddd;border-radius:12px;padding:18px 20px;margin:18px 0}
+.big{font-size:22px;font-weight:800;color:#4b50a8}
+.highlight{background:#f2f4ff;border-left:4px solid #7779c4;padding:12px 16px;margin:14px 0}
+.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}
+code{background:#eee;padding:2px 5px;border-radius:4px}
+.step{background:#f7f7fb;border-radius:10px;padding:14px 16px;margin:10px 0}
+.num{display:inline-block;width:30px;height:30px;border-radius:50%;background:#7779c4;color:#fff;text-align:center;line-height:30px;font-weight:bold;margin-right:8px}
+</style>
+</head>
+<body>
+
+<h1>Savitzky-Golay: Versi Paling Gampang</h1>
+<p class="sub">Tidak ada formula. Cuma analogi + gambar mental.</p>
+
+<h2>Bayangkan ini</h2>
+
+<div class="card">
+<p class="big">Kamu punya data yang goyang-goyang.</p>
+<p>Data mentah dari POC-ABS:</p>
+<div class="step">
+<code>0.10, 0.08, 0.45, 0.11, 0.09, 0.50, 0.12</code>
+</div>
+<p>Titik-titik ini naik turun acak. Ada noise kecil di mana-mana.</p>
+<p>Masalahnya: kalau langsung dicari peak-nya, bisa ketemu peak palsu.</p>
+</div>
+
+<h2>Savitzky-Golay = Jiplak Kurva Pakai Penggaris Kecil</h2>
+
+<div class="card">
+<p>Bayangkan kamu punya penggaris fleksibel sepanjang 5 titik.</p>
+<p>Kamu geser penggaris itu satu per satu dari kiri ke kanan.</p>
+<p>Di setiap posisi, kamu tekuk penggaris supaya paling pas mengikuti bentuk titik-titik itu.</p>
+<p>Lalu kamu tulis ulang titik tengah berdasarkan lengkungan penggaris, bukan titik asli.</p>
+<p>Hasilnya: titik-titik jadi lebih mulus, tapi bentuk naik-turunnya masih terlihat.</p>
+</div>
+
+<div class="highlight">
+<p><b>Inilah Savitzky-Golay.</b></p>
+<p>Untuk setiap titik, ia melihat beberapa tetangga, mencocokkan kurva kecil, lalu menulis ulang nilai titik itu berdasarkan kurva.</p>
+</div>
+
+<h2>Perbandingan dengan cara lain</h2>
+
+<div class="card">
+<p><b>Cara 1: Rata-rata biasa</b></p>
+<p>5 titik dijumlah, dibagi 5. Hasilnya: semua titik jadi mendekati rata-rata. Peak turun, bentuk hilang.</p>
+
+<p><b>Cara 2: Savitzky-Golay</b></p>
+<p>5 titik dicocokkan dengan kurva lengkung kecil. Hasilnya: peak masih ada, tapi permukaannya lebih mulus.</p>
+</div>
+
+<div class="card">
+<p>Analogi:</p>
+<div class="step">
+<p><b>Rata-rata biasa</b> = kamu ratakan semua bukit jadi dataran.</p>
+<p><b>Savitzky-Golay</b> = kamu haluskan permukaan bukit tapi bukitnya masih ada.</p>
+</div>
+</div>
+
+<h2>Dua Parameter Penting</h2>
+
+<div class="card">
+<p class="big">1. window_length = panjang penggaris</p>
+<p>Berapa banyak tetangga yang dilihat sekaligus.</p>
+<ul>
+<li>Pendek (misal 5 titik) → halus sedikit</li>
+<li>Panjang (misal 21 titik) → halus banyak, tapi peak bisa gepeng</li>
+</ul>
+</div>
+
+<div class="card">
+<p class="big">2. polyorder = lenturnya penggaris</p>
+<p>Bebas melengkung atau harus lurus.</p>
+<ul>
+<li>Polyorder 2 → bisa melengkung sedikit (kuadrat)</li>
+<li>Polyorder 3 → bisa melengkung lebih (kubik)</li>
+<li>Polyorder terlalu tinggi → malah ikut noise</li>
+</ul>
+</div>
+
+<h2>Di kode kamu</h2>
+
+<div class="card">
+<div class="step">
+<p><code>ApexSmoother.smooth(magnitudes)</code></p>
+<p>Di dalamnya:</p>
+<ul>
+<li>window ≈ 5% panjang sinyal, harus ganjil, minimal 5, maksimal 31</li>
+<li>polyorder = 2, 3, atau 4 tergantung window</li>
+</ul>
+</div>
+</div>
+
+<h2>Kenapa dipilih untuk spotting?</h2>
+
+<div class="card">
+<p>Spotting butuh tahu: <b>di mana puncaknya?</b></p>
+<p>Kalau pakai rata-rata biasa → puncak jadi gepeng → apex salah.</p>
+<p>Kalau pakai Savitzky-Golay → puncak masih terlihat jelas → apex benar.</p>
+<p>Makanya filter ini dipilih.</p>
+</div>
+
+<h2>Satu kalimat</h2>
+
+<div class="highlight">
+<p><b>Savitzky-Golay menghaluskan sinyal dengan menggeser kurva kecil ke setiap titik, sehingga noise berkurang tapi bentuk puncak masih terjaga.</b></p>
+</div>
+
+<h2>Cek pemahaman</h2>
+<div class="quiz">
+<ol>
+<li>Savitzky-Golay menggeser apa ke setiap titik?</li>
+<li>Window terlalu panjang efeknya apa?</li>
+<li>Kenapa Savitzky-Golay lebih baik dari rata-rata biasa untuk mencari apex?</li>
+</ol>
+<p><b>Jawaban:</b></p>
+<ol>
+<li>Kurva kecil / polinomial lokal</li>
+<li>Peak bisa terlalu rata / gepeng</li>
+<li>Karena Savitzky-Golay menjaga bentuk puncak, sedangkan rata-rata biasa meratakannya</li>
+</ol>
+</div>
+
+<p><i>Ada yang masih belum jelas? Tanya agent: "jelasin lagi soal [bagian yang bingung]".</i></p>
+
+</body>
+</html>

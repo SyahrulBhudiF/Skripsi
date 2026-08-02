@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lesson 0001 — Presentasi POC-ABS Flow</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:960px;margin:38px auto;line-height:1.55;color:#111;background:#fff}h1{font-size:30px;margin-bottom:4px}h2{font-size:20px;margin-top:28px}.sub{color:#555}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin:26px 0}.box{background:#7779c4;color:white;border-radius:9px;padding:14px 10px;text-align:center;font-size:14px;min-height:48px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 0 rgba(0,0,0,.15)}.script{background:#fafafa;border:1px solid #e5e5e5;border-radius:10px;padding:16px 18px}.ask{background:#f2f4ff;border-left:4px solid #7779c4;padding:12px 16px;margin-top:18px}.quiz{border:1px solid #ddd;border-radius:10px;padding:14px 16px}code{background:#eee;padding:2px 5px;border-radius:4px}a{color:#4b50a8}</style>
+</head>
+<body>
+<h1>Presentasi Alur POC-ABS</h1>
+<p class="sub">Target: kamu bisa jelaskan diagram ini dalam ±60 detik, sesuai kode <code>export_apex_poc_abs_ordered.ipynb</code>.</p>
+
+<div class="grid">
+<div class="box">Input ROI</div><div class="box">Frame t<br>&amp; Frame t+1</div><div class="box">Pembagian Block</div><div class="box">Transformasi Fourier</div><div class="box">Phase-Only Correlation</div>
+<div class="box">Output X, Y,<br>Sudut θ, Magnitude</div><div class="box">Perhitungan Sudut θ<br>dan Magnitude</div><div class="box">Pembentukan<br>Vektor Gerak</div><div class="box">Estimasi<br>Pergeseran</div><div class="box">Korelasi Pergeseran<br>&amp; Puncak Korelasi</div>
+</div>
+
+<h2>Narasi 60 detik</h2>
+<div class="script">
+<p>“Tahap ini dimulai dari <b>Input ROI</b>, yaitu area wajah yang sudah dipotong, seperti mulut, mata kiri, dan mata kanan. Untuk setiap ROI, sistem membandingkan <b>frame t</b> dengan <b>frame t+1</b>.</p>
+<p>ROI lalu dibagi menjadi beberapa <b>block</b>. Pada tiap block, digunakan <b>Phase-Only Correlation</b>, yaitu teknik berbasis Fourier untuk mencari pergeseran lokal antar dua frame. Puncak korelasi menunjukkan arah dan besar pergeseran paling kuat.</p>
+<p>Hasil pergeseran itu dibentuk menjadi <b>vektor gerak</b>. Dari vektor ini dihitung fitur <b>X</b>, <b>Y</b>, <b>sudut θ</b>, dan <b>magnitude</b>. Semua fitur itu kemudian disimpan sebagai representasi gerakan micro-expression per frame dalam file Excel.”</p>
+</div>
+
+<h2>Mapping langsung ke kode</h2>
+<ul>
+<li><b>Input ROI</b>: <code>REGIONS</code> + <code>ROIExtractor</code></li>
+<li><b>Frame t &amp; t+1</b>: baseline frame dibandingkan dengan frame berikutnya di event clip</li>
+<li><b>POC</b>: <code>POC(baseline_gray[comp], gray, block_size)</code></li>
+<li><b>Vektor gerak</b>: <code>Vektor(poc.getPOC(), block_size)</code></li>
+<li><b>X, Y, θ, magnitude</b>: <code>block[1]</code>, <code>block[2]</code>, <code>block[3]</code>, <code>block[4]</code></li>
+</ul>
+
+<h2>Latihan cepat</h2>
+<div class="quiz">
+<p><b>Tutup narasi di atas, jawab dari ingatan:</b></p>
+<ol>
+<li>Kenapa perlu membandingkan frame t dan frame t+1?</li>
+<li>POC mencari apa dari dua block ROI?</li>
+<li>Empat fitur akhir yang keluar dari tiap block apa saja?</li>
+</ol>
+<p><b>Jawaban target:</b> perubahan gerak antar frame; pergeseran lokal/puncak korelasi; X, Y, θ, magnitude.</p>
+</div>
+
+<p>Reference: <a href="../reference/poc-abs-flow.html">POC-ABS Flow Quick Reference</a></p>
+<div class="ask">Kalau bagian “Phase-Only Correlation” masih terasa abstrak, tanya agent: “jelasin POC pakai analogi gambar bergeser”.</div>
+</body>
+</html>

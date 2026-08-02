@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lesson 0006 — TABR Architecture Awal</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:940px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}.box{background:#7779c4;color:#fff;border-radius:9px;padding:13px 10px;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}.big{font-size:21px;font-weight:800;color:#4b50a8}code{background:#eee;padding:2px 5px;border-radius:4px}</style>
+</head>
+<body>
+<h1>TABR Architecture — Awal</h1>
+<p>Target: paham diagram TABR dan bisa jelaskan hubungan blok diagram dengan kode <code>third_party/tabular-dl-tabr-official/bin/tabr.py</code>.</p>
+
+<h2>1. TABR itu apa?</h2>
+<div class="card">
+<p class="big">TABR = retrieval-based model untuk data tabular.</p>
+<p>Model ini tidak hanya membaca input satu sampel, tapi juga mencari sampel train yang mirip sebagai <b>context</b>. Context itu membantu prediksi akhir.</p>
+<p>Kalimat presentasi:</p>
+<p><b>“TABR memprediksi data tabular dengan menggabungkan representasi input dan informasi dari sampel training yang paling mirip.”</b></p>
+</div>
+
+<h2>2. Alur diagram</h2>
+<div class="flow">
+<div class="box">Input Data Tabular</div><div class="box">Encoder</div><div class="box">Representasi Laten z</div><div class="box">Retrieval</div>
+<div class="box">Pembentukan Context</div><div class="box">Residual Add</div><div class="box">Predictor</div><div class="box">Output Anxiety</div>
+</div>
+</div>
+
+<h2>3. Mapping ke kode</h2>
+<div class="card">
+<ul>
+<li><b>Input data tabular</b>: <code>x_</code>, berisi <code>num</code>, <code>bin</code>, <code>cat</code></li>
+<li><b>Encoder</b>: <code>_encode()</code>, <code>self.linear</code>, <code>self.blocks0</code></li>
+<li><b>Representasi laten z</b>: output <code>x</code> dari encoder</li>
+<li><b>Retrieval key</b>: <code>k = self.K(...)</code></li>
+<li><b>Retrieval</b>: FAISS search pada <code>candidate_k</code></li>
+<li><b>Context</b>: <code>context_y_emb + self.T(k[:, None] - context_k)</code></li>
+<li><b>Residual add</b>: <code>x = x + context_x</code></li>
+<li><b>Predictor</b>: <code>self.blocks1</code> lalu <code>self.head</code></li>
+</ul>
+</div>
+
+<h2>4. Intuisi tiap blok</h2>
+<div class="card">
+<p><b>Encoder</b> mengubah fitur mentah menjadi vektor laten.</p>
+<p><b>Retrieval</b> mencari kandidat data train yang representasinya paling dekat.</p>
+<p><b>Context</b> mengambil informasi label kandidat mirip dan selisih representasi.</p>
+<p><b>Residual add</b> menambahkan context ke representasi input.</p>
+<p><b>Predictor</b> mengubah representasi akhir menjadi output kelas/nilai.</p>
+</div>
+
+<h2>5. Narasi presentasi 45 detik</h2>
+<div class="card">
+<p>“Model TABR menerima input data tabular berupa fitur numerik, biner, atau kategorikal. Input ini masuk ke encoder untuk membentuk representasi laten. Dari representasi tersebut, model membuat key yang digunakan untuk retrieval.”</p>
+<p>“Pada tahap retrieval, model mencari sampel training yang paling mirip menggunakan jarak antar key. Sampel mirip ini membentuk context, yaitu informasi tambahan dari data tetangga yang relevan.”</p>
+<p>“Context kemudian ditambahkan ke representasi input melalui residual add. Setelah itu predictor menghasilkan output akhir, misalnya kelas anxiety tinggi atau rendah.”</p>
+</div>
+
+<h2>Latihan</h2>
+<div class="quiz">
+<ol>
+<li>TABR mencari sampel mirip dari mana?</li>
+<li>Encoder menghasilkan apa?</li>
+<li>Baris kode residual add apa?</li>
+</ol>
+<p><b>Kunci:</b> data training/candidate; representasi laten; <code>x = x + context_x</code>.</p>
+</div>
+</body>
+</html>

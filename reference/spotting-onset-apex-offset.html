@@ -1,0 +1,9 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Spotting OAO Reference</title><style>body{font-family:Inter,Arial,sans-serif;max-width:880px;margin:38px auto;line-height:1.55;color:#111}h1{font-size:28px}.term{border-bottom:1px solid #ddd;padding:14px 0}.name{font-weight:800;color:#4b50a8;font-size:18px}code{background:#eee;padding:2px 5px;border-radius:4px}</style></head><body>
+<h1>Spotting Onset–Apex–Offset Reference</h1>
+<div class="term"><div class="name">Onset</div><p>Awal event: sinyal mulai naik dari baseline menuju puncak.</p></div>
+<div class="term"><div class="name">Apex</div><p>Puncak event: titik sinyal magnitude paling kuat dan lolos threshold peak.</p></div>
+<div class="term"><div class="name">Offset</div><p>Akhir event: sinyal turun kembali mendekati baseline setelah apex.</p></div>
+<div class="term"><div class="name">Magnitude signal</div><p>Deret angka per frame-pair. Tiap angka = rata-rata besar gerak ROI dari POC-ABS.</p></div>
+<div class="term"><div class="name">Threshold</div><p>Batas minimal agar peak dianggap kandidat event. Di notebook: <code>mean + std</code> dari smoothed signal.</p></div>
+<div class="term"><div class="name">Duration filtering</div><p>Event terlalu pendek dibuang. Di notebook: <code>duration &lt; config.min_phase_duration</code>.</p></div>
+</body></html>
