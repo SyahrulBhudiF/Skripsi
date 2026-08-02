@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Lesson 0013 — Std, Mean Magnitude, Prominence</title>
+<style>body{font-family:Inter,Arial,sans-serif;max-width:940px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:21px;font-weight:800;color:#4b50a8}.mini{background:#f7f7fb;border-radius:10px;padding:12px 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}.abc li{margin:8px 0}code{background:#eee;padding:2px 5px;border-radius:4px}pre{background:#f7f7fb;border-radius:10px;padding:12px;overflow:auto}</style></head>
+<body>
+<h1>Std, Mean Magnitude, Prominence</h1>
+<p>Target: jawab 3 pertanyaan penting untuk spotting: standar deviasi, kenapa mean, dan prominence.</p>
+
+<h2>1. Standar deviasi itu apa?</h2>
+<div class="card">
+<p class="big">Standar deviasi = ukuran seberapa menyebar nilai dari rata-rata.</p>
+<p>Kalau sinyal stabil, standar deviasi kecil. Kalau sinyal naik-turun banyak, standar deviasi besar.</p>
+<div class="grid">
+<div class="mini"><b>Sinyal tenang</b><br>[0.10, 0.11, 0.09, 0.10]<br>std kecil</div>
+<div class="mini"><b>Sinyal bergerak</b><br>[0.10, 0.45, 0.08, 0.60]<br>std besar</div>
+</div>
+<p>Di notebook:</p>
+<pre><code>height_threshold = mean(signal) + std(signal)</code></pre>
+<p>Artinya: peak harus lebih tinggi dari level normal + variasi normal.</p>
+</div>
+
+<h2>2. Kenapa threshold pakai mean + std?</h2>
+<div class="card">
+<p><b>Mean</b> = level gerakan rata-rata.</p>
+<p><b>Std</b> = toleransi variasi/noise.</p>
+<p>Jadi <code>mean + std</code> berarti: “anggap event hanya jika gerakan lebih tinggi dari gerakan normal dan lebih tinggi dari variasi biasa.”</p>
+<p>Kalimat presentasi:</p>
+<p><b>“Threshold mean plus standar deviasi dipakai agar peak yang dipilih bukan gerakan biasa, tetapi gerakan yang cukup menonjol dari pola normal sinyal.”</b></p>
+</div>
+
+<h2>3. Kenapa mean magnitude, bukan sum?</h2>
+<div class="card">
+<p class="big">Mean membuat nilai adil antar ROI / jumlah block.</p>
+<p>Kalau pakai <b>sum</b>, ROI yang punya block lebih banyak otomatis nilainya lebih besar, walaupun geraknya belum tentu lebih kuat.</p>
+<div class="grid">
+<div class="mini"><b>ROI A</b><br>10 block × gerak 1<br>sum = 10, mean = 1</div>
+<div class="mini"><b>ROI B</b><br>100 block × gerak 1<br>sum = 100, mean = 1</div>
+</div>
+<p>Dengan <b>sum</b>, ROI B terlihat 10× lebih aktif hanya karena block lebih banyak.</p>
+<p>Dengan <b>mean</b>, yang diukur adalah rata-rata intensitas gerak, bukan luas/jumlah block.</p>
+</div>
+
+<h2>4. Mean di notebook ada dua level</h2>
+<div class="card">
+<p><b>Level 1: mean block dalam satu ROI</b></p>
+<pre><code>roi_values[region_name] = np.mean(magnitudes)</code></pre>
+<p><b>Level 2: mean tiga ROI jadi satu signal</b></p>
+<pre><code>raw_value = np.mean(list(roi_values.values()))</code></pre>
+<p>Makna: tiap frame-pair punya satu angka ringkas yang mewakili kekuatan gerak wajah.</p>
+</div>
+
+<h2>5. Prominence itu apa?</h2>
+<div class="card">
+<p class="big">Prominence = seberapa menonjol sebuah puncak dibanding sekitarnya.</p>
+<p>Bukan cuma tinggi absolut. Peak harus terlihat seperti “bukit” yang jelas dari lembah sekitar.</p>
+<div class="grid">
+<div class="mini"><b>Peak tinggi tapi kurang menonjol</b><br>sekitar sudah sama-sama tinggi<br>prominence kecil</div>
+<div class="mini"><b>Peak jelas</b><br>naik dari lembah lalu turun lagi<br>prominence besar</div>
+</div>
+<p>Di notebook:</p>
+<pre><code>find_peaks(signal, distance=..., prominence=..., height=...)</code></pre>
+<p>Jadi peak harus:</p>
+<ul><li>tingginya melewati threshold</li><li>jaraknya cukup dari peak lain</li><li>menonjol dari area sekitarnya</li></ul>
+</div>
+
+<h2>6. Bedakan height vs prominence</h2>
+<div class="card">
+<p><b>Height</b>: puncaknya setinggi apa.</p>
+<p><b>Prominence</b>: puncaknya semenonjol apa dari lembah sekitar.</p>
+<p>Analogi gunung:</p>
+<ul><li>Height = ketinggian puncak dari permukaan laut.</li><li>Prominence = seberapa tinggi puncak dibanding dataran/lembah terdekat.</li></ul>
+</div>
+
+<h2>Kalimat presentasi</h2>
+<div class="card">
+<p>“Magnitude dihitung sebagai mean, bukan sum, agar nilai tidak bias terhadap jumlah block atau ukuran ROI. Setelah magnitude signal dibentuk, threshold ditentukan dengan mean plus standar deviasi, sehingga peak harus lebih tinggi dari variasi normal sinyal. Selain height, digunakan prominence untuk memastikan apex benar-benar menonjol dibanding area sekitarnya.”</p>
+</div>
+
+<h2>Soal ABC</h2>
+<div class="quiz">
+<p><b>1. Standar deviasi mengukur...</b></p><ol class="abc" type="A"><li>jumlah ROI</li><li>sebaran nilai</li><li>nama frame</li></ol>
+<p><b>2. Mean magnitude dipakai agar...</b></p><ol class="abc" type="A"><li>tidak bias jumlah block</li><li>semua nilai jadi nol</li><li>frame makin banyak</li></ol>
+<p><b>3. Prominence berarti...</b></p><ol class="abc" type="A"><li>tinggi absolut saja</li><li>menonjol dari sekitar</li><li>jumlah landmark wajah</li></ol>
+<p><b>4. Height threshold di notebook adalah...</b></p><ol class="abc" type="A"><li>mean + std</li><li>sum + max</li><li>median - std</li></ol>
+<p><b>5. Kalau pakai sum, ROI dengan block banyak akan...</b></p><ol class="abc" type="A"><li>terlihat lebih besar</li><li>selalu hilang</li><li>jadi threshold</li></ol>
+<p><b>Kunci:</b> 1B, 2A, 3B, 4A, 5A.</p>
+</div>
+</body></html>

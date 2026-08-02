@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Lesson 0014 — Savitzky-Golay Filter</title>
+<style>body{font-family:Inter,Arial,sans-serif;max-width:980px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:21px;font-weight:800;color:#4b50a8}.mini{background:#f7f7fb;border-radius:10px;padding:12px 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}.box{background:#7779c4;color:#fff;border-radius:9px;padding:12px;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}.abc li{margin:8px 0}code{background:#eee;padding:2px 5px;border-radius:4px}pre{background:#f7f7fb;border-radius:10px;padding:12px;overflow:auto}a{color:#4b50a8}</style></head>
+<body>
+<h1>Savitzky-Golay Filter untuk Spotting</h1>
+<p>Target: paham filter Savitzky-Golay itu apa, cara kerja, dan kenapa cocok untuk sinyal onset–apex–offset.</p>
+<p>Sumber: <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html">SciPy savgol_filter docs</a>, Savitzky & Golay 1964.</p>
+
+<h2>1. Masalahnya apa?</h2>
+<div class="card">
+<p>Magnitude signal dari POC-ABS sering noisy:</p>
+<div class="mini">[0.10, 0.12, 0.09, 0.40, 0.36, 0.42, 0.11]</div>
+<p>Noise kecil bisa membuat peak palsu. Kalau langsung cari apex dari raw signal, event bisa salah.</p>
+<p>Maka sinyal dihaluskan dulu.</p>
+</div>
+
+<h2>2. Savitzky-Golay itu apa?</h2>
+<div class="card">
+<p class="big">Savitzky-Golay = smoothing dengan fitting kurva polynomial lokal.</p>
+<p>Untuk setiap titik sinyal, filter mengambil beberapa titik tetangga dalam window, lalu mencari kurva polynomial kecil yang paling cocok. Nilai tengah diganti dengan nilai dari kurva itu.</p>
+<p>Bukan sekadar rata-rata. Ia mencoba mengikuti bentuk lokal sinyal.</p>
+</div>
+
+<h2>3. Cara kerja step-by-step</h2>
+<div class="flow">
+<div class="box">Ambil window ganjil</div><div class="box">Fit polynomial</div><div class="box">Ambil nilai tengah kurva</div><div class="box">Geser window</div><div class="box">Hasil smoothed signal</div>
+</div>
+<div class="card">
+<p>Contoh window length = 5, polyorder = 2:</p>
+<pre><code>raw:        [0.10, 0.13, 0.50, 0.15, 0.12]
+window:       └──────── 5 titik ────────┘
+fit:       kurva kuadrat lokal
+output:    nilai tengah hasil kurva</code></pre>
+<p>Proses ini diulang untuk semua titik.</p>
+</div>
+
+<h2>4. Apa itu window_length?</h2>
+<div class="card">
+<p><b>window_length</b> = jumlah titik yang dilihat sekaligus.</p>
+<ul><li>Window kecil → smoothing ringan, masih sensitif noise.</li><li>Window besar → smoothing kuat, tapi bisa meratakan apex.</li></ul>
+<p>Di kode kamu:</p>
+<pre><code>window_length = int(length * 0.05)
+if window_length % 2 == 0: window_length += 1
+window_length = max(5, min(window_length, 31))</code></pre>
+<p>Jadi window adaptif: sekitar 5% panjang sinyal, harus ganjil, minimal 5, maksimal 31.</p>
+</div>
+
+<h2>5. Kenapa window harus ganjil?</h2>
+<div class="card">
+<p>Karena filter butuh titik tengah yang jelas.</p>
+<div class="grid">
+<div class="mini"><b>Window 5</b><br>2 kiri + 1 tengah + 2 kanan</div>
+<div class="mini"><b>Window 6</b><br>tidak punya satu titik tengah jelas</div>
+</div>
+<p>Itu sebabnya kode menaikkan window genap menjadi ganjil.</p>
+</div>
+
+<h2>6. Apa itu polyorder?</h2>
+<div class="card">
+<p><b>polyorder</b> = derajat kurva polynomial yang dipakai.</p>
+<ul><li>2 = kurva kuadrat, bisa menangkap lengkungan sederhana.</li><li>3 = kubik, lebih fleksibel.</li><li>4 = lebih fleksibel lagi, tapi jangan terlalu tinggi.</li></ul>
+<p>Di kode kamu:</p>
+<pre><code>if window_length <= 7: polyorder = 2
+elif window_length <= 15: polyorder = 3
+else: polyorder = 4</code></pre>
+<p>Aturan ini menjaga kurva cukup fleksibel tapi tidak terlalu mengikuti noise.</p>
+</div>
+
+<h2>7. Kenapa bukan moving average biasa?</h2>
+<div class="card">
+<p><b>Moving average</b> merata-ratakan nilai. Akibatnya peak bisa turun dan bentuk apex bisa melebar.</p>
+<p><b>Savitzky-Golay</b> fitting kurva lokal. Ia biasanya lebih baik menjaga bentuk puncak, tinggi puncak, dan trend lokal.</p>
+<div class="grid">
+<div class="mini"><b>Moving average</b><br>halus, tapi peak gampang gepeng</div>
+<div class="mini"><b>Savitzky-Golay</b><br>halus, tapi bentuk peak lebih terjaga</div>
+</div>
+</div>
+
+<h2>8. Kenapa dipilih untuk spotting?</h2>
+<div class="card">
+<p>Spotting butuh dua hal sekaligus:</p>
+<ol><li>Noise kecil harus dikurangi.</li><li>Apex tidak boleh hilang/gepeng berlebihan.</li></ol>
+<p>Savitzky-Golay cocok karena ia menghaluskan sinyal tetapi tetap mempertahankan bentuk puncak. Ini penting karena apex dicari dari peak.</p>
+<p>Kalimat presentasi:</p>
+<p><b>“Savitzky-Golay dipilih karena dapat mengurangi noise pada magnitude signal sambil mempertahankan bentuk puncak, sehingga deteksi apex lebih stabil.”</b></p>
+</div>
+
+<h2>9. Di notebook terjadi di mana?</h2>
+<div class="card">
+<pre><code>smoothed = ApexSmoother.smooth(magnitudes)</code></pre>
+<p>Lalu smoothed signal dipakai untuk:</p>
+<ul><li>menghitung threshold <code>mean + std</code></li><li>mendeteksi apex dengan <code>find_top_k_apex</code></li><li>mencari onset-offset dengan <code>find_phase</code></li></ul>
+<p>Jadi smoothing memengaruhi seluruh proses event spotting.</p>
+</div>
+
+<h2>10. Risiko kalau parameter salah</h2>
+<div class="card">
+<ul><li><b>Window terlalu kecil</b>: noise masih banyak, peak palsu.</li><li><b>Window terlalu besar</b>: apex bisa terlalu rata, onset-offset melebar.</li><li><b>Polyorder terlalu rendah</b>: bentuk puncak kurang terjaga.</li><li><b>Polyorder terlalu tinggi</b>: filter bisa ikut noise.</li></ul>
+<p>Makanya kode memakai parameter adaptif, bukan angka tetap.</p>
+</div>
+
+<h2>Soal ABC</h2>
+<div class="quiz">
+<p><b>1. Savitzky-Golay menghaluskan sinyal dengan cara...</b></p><ol class="abc" type="A"><li>menghapus semua peak</li><li>fitting polynomial lokal</li><li>mengubah frame jadi RGB</li></ol>
+<p><b>2. Window_length berarti...</b></p><ol class="abc" type="A"><li>jumlah titik dalam window</li><li>jumlah ROI wajah</li><li>jumlah kelas model</li></ol>
+<p><b>3. Kenapa window harus ganjil?</b></p><ol class="abc" type="A"><li>agar ada titik tengah</li><li>agar file bisa dibuka</li><li>agar label berubah</li></ol>
+<p><b>4. Dibanding moving average, Savitzky-Golay lebih dipilih karena...</b></p><ol class="abc" type="A"><li>lebih menjaga bentuk peak</li><li>selalu membuat nilai nol</li><li>tidak butuh sinyal</li></ol>
+<p><b>5. Kalau window terlalu besar, risiko utamanya...</b></p><ol class="abc" type="A"><li>apex menjadi terlalu rata</li><li>frame tidak terbaca</li><li>ROI jadi hilang</li></ol>
+<p><b>Kunci:</b> 1B, 2A, 3A, 4A, 5A.</p>
+</div>
+</body></html>

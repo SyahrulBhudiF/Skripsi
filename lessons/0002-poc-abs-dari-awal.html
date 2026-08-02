@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lesson 0002 — POC-ABS dari Awal</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:980px;margin:38px auto;line-height:1.55;color:#111}h1{font-size:30px;margin-bottom:4px}h2{font-size:20px;margin-top:28px}.sub{color:#555}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin:24px 0}.box{background:#7779c4;color:#fff;border-radius:9px;padding:13px 10px;text-align:center;font-size:14px;min-height:48px;display:flex;align-items:center;justify-content:center}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.script{background:#fafafa;border-left:4px solid #7779c4;padding:14px 18px}.small{font-size:14px;color:#555}code{background:#eee;padding:2px 5px;border-radius:4px}a{color:#4b50a8}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}</style>
+</head>
+<body>
+<h1>POC-ABS dari Awal</h1>
+<p class="sub">Tujuan: bisa jelaskan teori POC-ABS dari nol untuk presentasi skripsi, lalu hubungkan ke kode notebook.</p>
+
+<h2>1. Masalah yang diselesaikan</h2>
+<div class="card">
+<p>Micro-expression sangat cepat dan halus. Yang dicari bukan “gambar wajahnya mirip atau tidak”, tapi <b>ada pergeseran kecil di area wajah tertentu atau tidak</b>.</p>
+<p>POC-ABS dipakai untuk estimasi gerakan lokal pada ROI wajah. Paper Rosiani et al. menyebut POC-ABS membandingkan block pada frame berurutan; jika block berbeda, sistem menghasilkan motion vector. Jika block identik, tidak ada motion vector.</p>
+<p class="small">Sumber utama: Rosiani et al. 2020, Section 2–3.2, <a href="https://inass.org/2020/2020123148.pdf">PDF</a>.</p>
+</div>
+
+<h2>2. Alur besar</h2>
+<div class="flow">
+<div class="box">Input ROI</div><div class="box">Frame t<br>&amp; Frame t+1</div><div class="box">Pembagian Block</div><div class="box">Transformasi Fourier</div><div class="box">Phase-Only Correlation</div>
+<div class="box">Output X, Y,<br>Sudut θ, Magnitude</div><div class="box">Hitung Sudut θ<br>&amp; Magnitude</div><div class="box">Bentuk Vektor Gerak</div><div class="box">Estimasi Pergeseran</div><div class="box">Puncak Korelasi</div>
+</div>
+
+<h2>3. Intuisi POC</h2>
+<div class="card">
+<p>Bayangkan dua potongan gambar kecil: block dari frame t dan block dari frame t+1.</p>
+<ul>
+<li>Kalau dua block sama persis → puncak POC tinggi di tengah → dianggap tidak bergerak.</li>
+<li>Kalau block bergeser → puncak POC pindah posisi → posisi puncak menunjukkan arah pergeseran.</li>
+</ul>
+<p>POC memakai informasi <b>fase</b> dari Fourier, bukan amplitudo mentah. Karena itu ia kuat untuk image matching dan displacement estimation.</p>
+</div>
+
+<h2>4. Apa arti “ABS”?</h2>
+<div class="card">
+<p><b>ABS = All Block Search</b>. Namun di paper ini, bukan full-search ke banyak posisi seperti POC-FS.</p>
+<p>POC-ABS membandingkan block current frame dengan block reference frame pada <b>posisi block yang sama</b>. Tujuannya bukan mencari match paling optimal di seluruh search window, tapi mendeteksi apakah block itu mengalami pergeseran.</p>
+<p>Ini membuat POC-ABS lebih ringan. Paper melaporkan POC-ABS lebih cepat daripada POC-FS karena search-nya lebih sederhana.</p>
+</div>
+
+<h2>5. Output fitur</h2>
+<div class="card">
+<p>Setelah puncak korelasi ditemukan, pergeseran dijadikan motion vector. Dari vector itu diambil fitur:</p>
+<ul>
+<li><b>X</b>: komponen horizontal</li>
+<li><b>Y</b>: komponen vertikal</li>
+<li><b>θ / theta</b>: sudut arah gerak</li>
+<li><b>Magnitude</b>: besar gerak</li>
+</ul>
+<p>Di kode kamu:</p>
+<pre><code>poc = POC(baseline_gray[comp], gray, block_size)
+vec = Vektor(poc.getPOC(), block_size)
+quad = Quadran(vec.getVektor()).getQuadran()
+
+row[f'{comp}_x{block_id}'] = block[1]
+row[f'{comp}_y{block_id}'] = block[2]
+row[f'{comp}_t{block_id}'] = block[3]
+row[f'{comp}_m{block_id}'] = block[4]</code></pre>
+</div>
+
+<h2>6. Narasi presentasi 45 detik</h2>
+<div class="script">
+<p>“POC-ABS digunakan untuk mengekstraksi fitur gerakan halus pada ROI wajah. Pertama, area wajah seperti mata dan mulut diambil dari dua frame, yaitu frame t dan frame t+1. Area ROI dibagi menjadi beberapa block kecil.”</p>
+<p>“Setiap block dibandingkan menggunakan Phase-Only Correlation. Jika block tidak bergeser, puncak korelasi berada di tengah. Jika ada pergeseran, posisi puncak berubah, sehingga arah dan besar pergeseran dapat dihitung.”</p>
+<p>“Pergeseran itu kemudian dibentuk menjadi vektor gerak. Dari tiap vektor diambil fitur X, Y, sudut θ, dan magnitude. Fitur inilah yang disimpan sebagai representasi gerakan micro-expression.”</p>
+</div>
+
+<h2>7. Latihan retrieval</h2>
+<div class="quiz">
+<ol>
+<li>POC membandingkan apa dengan apa?</li>
+<li>Kalau puncak POC pindah dari tengah, artinya apa?</li>
+<li>Apa beda POC-ABS dengan POC-FS secara sederhana?</li>
+<li>Empat output fitur per block apa saja?</li>
+</ol>
+<p><b>Jawaban cek:</b> block frame t vs t+1; ada pergeseran; ABS cek block posisi sama, FS mencari banyak kandidat; X, Y, θ, magnitude.</p>
+</div>
+
+<p class="small">Next: minta agent “uji saya POC-ABS 5 pertanyaan” untuk latihan presentasi.</p>
+<p>Reference: <a href="../reference/poc-abs-flow.html">POC-ABS Flow Quick Reference</a></p>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Cheatsheet POC-ABS</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:920px;margin:40px auto;color:#1f2937;line-height:1.55}h1{font-size:28px}h2{margin-top:28px}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin:24px 0}.box{background:#777cc2;color:white;border-radius:9px;padding:14px;text-align:center;font-size:14px;min-height:42px;display:flex;align-items:center;justify-content:center}.arrow{text-align:center;color:#777cc2;font-weight:700}.small{font-size:13px;color:#4b5563}code{background:#f3f4f6;padding:2px 5px;border-radius:4px}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{border:1px solid #e5e7eb;padding:8px;text-align:left}th{background:#f9fafb}</style>
+</head>
+<body>
+<h1>Cheatsheet POC-ABS untuk Presentasi</h1>
+<p class="small">Sumber kode: <code>preprocess-anxiety/export_apex_poc_abs_ordered.ipynb</code>, <code>features_extraction/poc.py</code>, <code>vektor.py</code>, <code>quadran.py</code>.</p>
+
+<h2>Alur 10 kotak</h2>
+<div class="flow">
+  <div class="box">Input ROI</div><div class="box">Frame Baseline<br>&amp; Frame Target</div><div class="box">Pembagian Block</div><div class="box">Transformasi Fourier</div><div class="box">Phase-Only Correlation</div>
+  <div class="box">Output X, Y,<br>Sudut, Magnitude</div><div class="box">Hitung Sudut<br>&amp; Magnitude</div><div class="box">Pembentukan<br>Vektor Gerak</div><div class="box">Estimasi<br>Pergeseran</div><div class="box">Puncak Korelasi</div>
+</div>
+
+<h2>Kalimat 1 napas</h2>
+<p><strong>Setiap ROI dibandingkan antara frame baseline dan frame target. ROI dibagi menjadi block kecil, lalu tiap block dihitung korelasi fasenya dengan POC. Puncak korelasi menunjukkan estimasi pergeseran lokal. Pergeseran itu diubah menjadi vektor gerak, kemudian dihitung nilai X, Y, sudut, dan magnitude sebagai fitur POC-ABS.</strong></p>
+
+<h2>Makna output</h2>
+<table><thead><tr><th>Output</th><th>Makna</th></tr></thead><tbody>
+<tr><td>X</td><td>Arah/pergeseran horizontal block</td></tr>
+<tr><td>Y</td><td>Arah/pergeseran vertikal block</td></tr>
+<tr><td>Sudut θ</td><td>Arah vektor gerak dalam derajat</td></tr>
+<tr><td>Magnitude</td><td>Besar gerakan block</td></tr>
+</tbody></table>
+</body></html>

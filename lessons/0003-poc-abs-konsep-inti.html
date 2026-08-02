@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lesson 0003 — Konsep Inti POC-ABS</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:960px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:30px}.ok{background:#eef9f0;border-left:4px solid #2e9d4d;padding:12px 16px}.fix{background:#fff7ed;border-left:4px solid #e07a1f;padding:12px 16px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.term{font-weight:700;color:#4b50a8}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}code{background:#eee;padding:2px 5px;border-radius:4px}</style>
+</head>
+<body>
+<h1>POC-ABS: Konsep Inti</h1>
+<p>Lesson ini meluruskan istilah penting: POC, fase, ABS, puncak korelasi, dan estimasi pergeseran.</p>
+
+<h2>Feedback jawaban kamu</h2>
+<div class="ok"><b>Benar:</b> output fitur adalah <b>X, Y, theta, magnitude</b>.</div>
+<div class="fix"><b>Perlu diluruskan:</b> POC membandingkan <b>block ROI pada frame referensi</b> dengan <b>block ROI pada frame pembanding</b>, bukan seluruh frame langsung.</div>
+<div class="fix"><b>Perlu diluruskan:</b> ABS bukan sekadar “frame dibagi blok”. ABS = <b>All Block Search</b>: semua block pada ROI diproses satu per satu di posisi block yang sama.</div>
+<div class="fix"><b>Perlu diluruskan:</b> FS bukan “1 frame dibandingkan langsung”. POC-FS = <b>Full Search</b>: satu block dicari kecocokannya pada banyak kandidat posisi dalam search window.</div>
+
+<h2>1. POC-ABS itu apa?</h2>
+<div class="card">
+<p><span class="term">POC-ABS</span> adalah metode estimasi gerakan berbasis block.</p>
+<p>Ia membandingkan block kecil pada ROI wajah antara dua frame. Dari perbandingan itu, sistem mencari apakah block bergeser. Kalau bergeser, hasilnya menjadi motion vector.</p>
+<p><b>Kalimat presentasi:</b> “POC-ABS adalah metode untuk mendeteksi pergeseran kecil pada area wajah dengan membandingkan block ROI antar frame.”</p>
+</div>
+
+<h2>2. Fase itu apa?</h2>
+<div class="card">
+<p>Dalam Fourier, gambar bisa dipandang punya dua informasi:</p>
+<ul>
+<li><b>Magnitude/amplitudo</b>: seberapa kuat komponen frekuensi.</li>
+<li><b>Fase</b>: posisi/struktur pola dalam gambar.</li>
+</ul>
+<p>Untuk mencari pergeseran, fase sangat penting karena perubahan posisi gambar banyak tersimpan pada perubahan fase.</p>
+<p><b>Analogi:</b> amplitudo seperti “seberapa keras suara”, fase seperti “kapan gelombang itu mulai”. Kalau pola bergeser, timing/posisinya berubah — itu terbaca di fase.</p>
+</div>
+
+<h2>3. Kenapa pakai Phase-Only Correlation?</h2>
+<div class="card">
+<p>POC membuang pengaruh besar kecil amplitudo, lalu fokus pada beda fase dua block.</p>
+<p>Kalau dua block mirip tapi bergeser, korelasi fase akan membentuk puncak. Posisi puncak ini memberi petunjuk arah geser.</p>
+<p><b>Kalimat presentasi:</b> “POC menggunakan informasi fase dari Fourier untuk mencari posisi pergeseran paling kuat antara dua block.”</p>
+</div>
+
+<h2>4. ABS itu apa?</h2>
+<div class="card">
+<p><span class="term">ABS = All Block Search</span>.</p>
+<p>Maksudnya: semua block pada ROI diproses. Tetapi tiap block dibandingkan dengan block di posisi yang sama pada frame lain.</p>
+<p>Ini beda dari <b>POC-FS</b>. Full Search mencari kecocokan block ke banyak kandidat posisi. ABS lebih sederhana: cek block yang sama posisinya, lalu estimasi ada pergeseran atau tidak.</p>
+</div>
+
+<h2>5. Puncak korelasi itu apa?</h2>
+<div class="card">
+<p>Setelah POC dihitung, hasilnya berupa peta korelasi.</p>
+<p><span class="term">Puncak korelasi</span> = titik tertinggi pada peta itu. Titik tertinggi berarti posisi pergeseran yang paling mungkin.</p>
+<ul>
+<li>Puncak di tengah → block tidak bergeser.</li>
+<li>Puncak bergeser dari tengah → block mengalami pergeseran.</li>
+</ul>
+</div>
+
+<h2>6. Estimasi pergeseran maksudnya apa?</h2>
+<div class="card">
+<p>Estimasi pergeseran = memperkirakan block bergerak ke arah mana dan sejauh apa.</p>
+<p>Misal puncak korelasi berada 2 pixel ke kanan dan 1 pixel ke atas dari tengah. Maka gerakan block diperkirakan:</p>
+<p><code>X = 2</code>, <code>Y = -1</code></p>
+<p>Dari X dan Y, dihitung:</p>
+<ul>
+<li><b>theta</b>: arah/sudut gerak</li>
+<li><b>magnitude</b>: besar gerak</li>
+</ul>
+</div>
+
+<h2>Jawaban versi benar</h2>
+<div class="card">
+<ol>
+<li>POC membandingkan block ROI pada frame referensi dengan block ROI pada frame pembanding.</li>
+<li>Fase adalah informasi posisi/struktur pola dalam domain Fourier; pergeseran gambar terlihat sebagai perubahan fase.</li>
+<li>ABS memproses semua block di ROI pada posisi yang sama; FS mencari block terbaik di banyak kandidat posisi.</li>
+<li>Puncak korelasi adalah nilai tertinggi pada hasil POC yang menunjukkan posisi pergeseran paling mungkin.</li>
+<li>Estimasi pergeseran adalah mengubah posisi puncak korelasi menjadi gerak X dan Y, lalu theta dan magnitude.</li>
+</ol>
+</div>
+
+<h2>Latihan 30 detik</h2>
+<div class="quiz">
+<p>Jawab tanpa lihat atas:</p>
+<ol>
+<li>Kalau puncak POC ada di tengah, artinya apa?</li>
+<li>Kalau puncak POC pindah dari tengah, output geraknya apa dulu?</li>
+<li>Kenapa ABS lebih cepat dari FS?</li>
+</ol>
+<p><b>Kunci:</b> tidak bergeser; X dan Y; karena tidak mencari banyak kandidat posisi.</p>
+</div>
+</body>
+</html>

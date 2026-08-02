@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><title>TABR Glossary</title><style>body{font-family:Inter,Arial,sans-serif;max-width:850px;margin:38px auto;line-height:1.55;color:#111}h1{font-size:28px}.term{border-bottom:1px solid #ddd;padding:14px 0}.name{font-weight:800;color:#4b50a8;font-size:18px}code{background:#eee;padding:2px 5px;border-radius:4px}</style></head><body>
+<h1>TABR Glossary</h1>
+<div class="term"><div class="name">Laten / latent representation</div><p>Bentuk internal data setelah diubah encoder. Bukan data mentah lagi, tapi ringkasan angka yang lebih mudah dipakai model.</p></div>
+<div class="term"><div class="name">Encoder</div><p>Bagian model yang mengubah fitur tabular mentah menjadi representasi laten.</p></div>
+<div class="term"><div class="name">Retrieval</div><p>Proses mencari data training yang mirip dengan data input saat ini.</p></div>
+<div class="term"><div class="name">Context</div><p>Informasi tambahan dari tetangga terdekat: label tetangga + hubungan representasi input dengan tetangga.</p></div>
+<div class="term"><div class="name">Residual add</div><p>Menambahkan informasi baru ke representasi lama tanpa membuang representasi lama. Di kode: <code>x = x + context_x</code>.</p></div>
+<div class="term"><div class="name">Predictor</div><p>Bagian akhir yang mengubah representasi final menjadi skor output, lalu dipakai sebagai prediksi kelas/nilai.</p></div>
+</body></html>

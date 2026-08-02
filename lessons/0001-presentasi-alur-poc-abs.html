@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Lesson 0001 — Presentasi Alur POC-ABS</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:980px;margin:42px auto;color:#111827;line-height:1.6;background:#fff}h1{font-size:30px;margin-bottom:6px}h2{font-size:20px;margin-top:30px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}.muted{color:#6b7280}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;margin:28px 0}.box{background:#777cc2;color:white;border-radius:9px;min-height:48px;padding:13px;text-align:center;display:flex;align-items:center;justify-content:center;font-size:14px}.note{background:#f9fafb;border-left:4px solid #777cc2;padding:14px 16px;margin:18px 0}.script{background:#111827;color:#f9fafb;border-radius:10px;padding:18px;white-space:pre-wrap}.quiz{border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:14px 0}code{background:#f3f4f6;padding:2px 5px;border-radius:4px}a{color:#4f46e5}</style>
+</head>
+<body>
+<h1>Presentasi Alur POC-ABS</h1>
+<p class="muted">Target: kamu bisa menjelaskan diagram POC-ABS dari kode <code>export_apex_poc_abs_ordered.ipynb</code> dalam ±60 detik.</p>
+
+<h2>1. Diagram yang dipakai</h2>
+<div class="flow">
+  <div class="box">Input ROI</div><div class="box">Frame Baseline<br>&amp; Frame Target</div><div class="box">Pembagian Block</div><div class="box">Transformasi Fourier</div><div class="box">Phase-Only Correlation</div>
+  <div class="box">Output X, Y,<br>Sudut, Magnitude</div><div class="box">Hitung Sudut<br>&amp; Magnitude</div><div class="box">Pembentukan<br>Vektor Gerak</div><div class="box">Estimasi<br>Pergeseran</div><div class="box">Puncak Korelasi</div>
+</div>
+<p class="muted">Baca baris atas kiri→kanan, lalu baris bawah kanan→kiri.</p>
+
+<h2>2. Hubungkan diagram ke kode</h2>
+<div class="note">
+  <p><strong>Input ROI</strong> berasal dari event clip. Frame pertama clip jadi baseline. Frame berikutnya dibandingkan ke baseline.</p>
+  <p>Kode inti: <code>extract_flatten_row(...)</code> di notebook.</p>
+</div>
+<div class="note">
+  <p><strong>POC</strong> ada di <code>POC(baseline_gray[comp], gray, block_size)</code>.</p>
+  <p>Di dalamnya: block ROI → Fourier → normalisasi fase → inverse Fourier → puncak korelasi.</p>
+</div>
+<div class="note">
+  <p><strong>Vektor dan fitur</strong> dibuat oleh:</p>
+  <p><code>Vektor(poc.getPOC(), block_size)</code> lalu <code>Quadran(vec.getVektor()).getQuadran()</code>.</p>
+  <p>Output per block: <code>x</code>, <code>y</code>, <code>t</code> / theta, <code>m</code> / magnitude.</p>
+</div>
+
+<h2>3. Script presentasi 60 detik</h2>
+<div class="script">Pada tahap ini, inputnya adalah ROI wajah seperti mulut, mata kiri, dan mata kanan. Setiap ROI dibandingkan antara frame baseline dan frame target.
+
+ROI kemudian dibagi menjadi block kecil. Untuk setiap block, sistem menghitung Phase-Only Correlation. POC bekerja di domain Fourier dan hanya memakai informasi fase, sehingga fokus pada pergeseran pola tekstur antar frame.
+
+Hasil POC berupa peta korelasi. Titik puncak pada peta ini dianggap sebagai estimasi pergeseran lokal pada block tersebut.
+
+Pergeseran itu lalu diubah menjadi vektor gerak. Dari vektor ini dihitung komponen X, komponen Y, sudut theta, dan magnitude. Nilai-nilai inilah yang diekspor sebagai fitur POC-ABS untuk setiap frame dalam event clip.</div>
+
+<h2>4. Latihan cepat</h2>
+<div class="quiz">
+  <p><strong>Recall:</strong> tanpa lihat atas, jawab 4 hal ini:</p>
+  <ol>
+    <li>Frame mana yang jadi baseline?</li>
+    <li>Kenapa ROI dibagi menjadi block?</li>
+    <li>Apa arti puncak korelasi?</li>
+    <li>Apa empat output akhir per block?</li>
+  </ol>
+</div>
+
+<h2>5. Jawaban ringkas</h2>
+<ol>
+  <li>Frame pertama event clip.</li>
+  <li>Agar gerakan lokal wajah bisa dihitung.</li>
+  <li>Lokasi pergeseran paling kuat antara dua block.</li>
+  <li>X, Y, theta/sudut, magnitude.</li>
+</ol>
+
+<h2>6. Referensi</h2>
+<ul>
+  <li><a href="../reference/poc-abs-flow-cheatsheet.html">Cheatsheet POC-ABS</a></li>
+  <li><code>features_extraction/poc.py</code></li>
+  <li><code>features_extraction/vektor.py</code></li>
+  <li><code>features_extraction/quadran.py</code></li>
+</ul>
+
+<p class="muted">Kalau ada bagian yang belum enak buat slide, tanya agent untuk rewrite jadi bahasa presentasi.</p>
+</body></html>

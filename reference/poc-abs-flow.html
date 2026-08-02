@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Reference — POC-ABS Flow</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:900px;margin:40px auto;line-height:1.5;color:#111}h1{font-size:28px}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin:24px 0}.box{background:#7779c4;color:white;border-radius:9px;padding:14px 12px;text-align:center;font-size:14px;min-height:44px;display:flex;align-items:center;justify-content:center}.note{background:#f6f6fb;border-left:4px solid #7779c4;padding:12px 16px}code{background:#eee;padding:2px 5px;border-radius:4px}</style>
+</head>
+<body>
+<h1>POC-ABS Flow — Quick Reference</h1>
+<div class="flow">
+<div class="box">Input ROI</div><div class="box">Frame t &amp; t+1</div><div class="box">Pembagian Block</div><div class="box">Transformasi Fourier</div><div class="box">Phase-Only Correlation</div>
+<div class="box">Output X, Y,<br>Sudut θ, Magnitude</div><div class="box">Hitung Sudut θ<br>dan Magnitude</div><div class="box">Bentuk Vektor Gerak</div><div class="box">Estimasi Pergeseran</div><div class="box">Korelasi Pergeseran<br>&amp; Puncak Korelasi</div>
+</div>
+<div class="note"><b>Kalimat inti:</b> POC-ABS membandingkan ROI pada frame berurutan untuk mencari pergeseran lokal. Pergeseran itu diubah menjadi vektor gerak, lalu diringkas sebagai fitur X, Y, sudut θ, dan magnitude per block.</div>
+<h2>Mapping ke kode</h2>
+<ul>
+<li>ROI: <code>REGIONS</code>, <code>ROIExtractor</code></li>
+<li>POC: <code>POC(baseline_gray[comp], gray, block_size)</code></li>
+<li>Vektor: <code>Vektor(poc.getPOC(), block_size)</code></li>
+<li>Output fitur: <code>block[1]</code> X, <code>block[2]</code> Y, <code>block[3]</code> θ, <code>block[4]</code> magnitude</li>
+</ul>
+</body>
+</html>

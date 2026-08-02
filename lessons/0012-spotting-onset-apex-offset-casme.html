@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Lesson 0012 — Spotting Onset Apex Offset</title>
+<style>body{font-family:Inter,Arial,sans-serif;max-width:980px;margin:38px auto;line-height:1.6;color:#111}h1{font-size:30px}h2{font-size:21px;margin-top:28px}.card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:16px 0}.big{font-size:21px;font-weight:800;color:#4b50a8}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}.box{background:#7779c4;color:white;border-radius:9px;padding:12px;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center}.mini{background:#f7f7fb;border-radius:10px;padding:12px 14px}.quiz{background:#f6f7ff;border-radius:12px;padding:14px 18px}.abc li{margin:8px 0}code{background:#eee;padding:2px 5px;border-radius:4px}pre{background:#f7f7fb;border-radius:10px;padding:12px;overflow:auto}a{color:#4b50a8}</style></head>
+<body>
+<h1>Spotting Event: Onset–Apex–Offset</h1>
+<p>Fokus: notebook <code>preprocess-anxiety/casme_process_all_datasets.ipynb</code>. Tujuan spotting: dari frame CASME, cari event micro-expression dalam bentuk <b>onset–apex–offset</b>.</p>
+
+<h2>1. Alur diagram</h2>
+<div class="flow">
+<div class="box">Input ROI</div><div class="box">Hitung POC-ABS</div><div class="box">Mean Magnitude</div><div class="box">Magnitude Signal</div><div class="box">Smoothed Signal</div>
+<div class="box">Threshold</div><div class="box">Peak Detection Apex</div><div class="box">Phase Boundary</div><div class="box">Duration Filtering</div><div class="box">Output O-A-O</div>
+</div>
+
+<h2>2. Input ROI</h2>
+<div class="card">
+<p>Notebook memakai 3 ROI:</p>
+<ul><li><code>mata_alis_kanan</code></li><li><code>mata_alis_kiri</code></li><li><code>mulut</code></li></ul>
+<p>Setiap ROI diambil dari landmark wajah, lalu di-resize agar ukuran konsisten.</p>
+<pre><code>'mata_alis_kanan': list(range(42, 48)) + list(range(22, 27))
+'mata_alis_kiri': list(range(36, 42)) + list(range(17, 22))
+'mulut': list(range(48, 68))</code></pre>
+</div>
+
+<h2>3. POC-ABS → magnitude per ROI</h2>
+<div class="card">
+<p>Untuk setiap pasangan frame berurutan, notebook membandingkan ROI frame sebelumnya dan frame saat ini.</p>
+<pre><code>poc = POC(roi_prev, roi_curr, config.block_size)
+vec = Vektor(poc.getPOC(), config.block_size)
+quad_data = Quadran(vec.getVektor()).getQuadran()
+magnitudes = [float(block[4]) for block in quad_data]</code></pre>
+<p><code>block[4]</code> adalah magnitude gerak tiap block. Lalu semua magnitude block dirata-rata:</p>
+<pre><code>roi_values[region_name] = np.mean(magnitudes)</code></pre>
+</div>
+
+<h2>4. Mean magnitude → magnitude signal</h2>
+<div class="card">
+<p>Setelah tiap ROI punya nilai magnitude, notebook merata-ratakan 3 ROI:</p>
+<pre><code>raw_value = np.mean(list(roi_values.values()))</code></pre>
+<p>Nilai <code>raw_value</code> per frame-pair dikumpulkan menjadi deret:</p>
+<div class="mini">magnitude signal = [0.02, 0.03, 0.10, 0.42, 0.18, ...]</div>
+<p>Makna: semakin tinggi nilai, semakin besar gerakan wajah pada frame-pair itu.</p>
+</div>
+
+<h2>5. Smoothed signal</h2>
+<div class="card">
+<p>Raw signal biasanya noisy. Maka dipakai <code>ApexSmoother.smooth()</code>.</p>
+<pre><code>smoothed = ApexSmoother.smooth(magnitudes)</code></pre>
+<p>Smoother memakai Savitzky-Golay filter. Window adaptif: sekitar 5% panjang sinyal, ganjil, dibatasi maksimal 31.</p>
+<p>Tujuan: bentuk puncak event lebih stabil, noise kecil tidak langsung dianggap apex.</p>
+</div>
+
+<h2>6. Threshold</h2>
+<div class="card">
+<p>Threshold dipakai untuk menentukan peak yang cukup tinggi.</p>
+<pre><code>height_threshold = signal_arr.mean() + signal_arr.std()</code></pre>
+<p>Artinya: peak harus lebih tinggi dari rata-rata sinyal + 1 standar deviasi.</p>
+<p>Kalimat presentasi: <b>“Threshold memisahkan gerakan biasa dari kandidat gerakan ekspresif yang lebih kuat.”</b></p>
+</div>
+
+<h2>7. Peak detection = apex</h2>
+<div class="card">
+<p>Apex dicari dari smoothed signal menggunakan <code>ApexPhase.find_top_k_apex()</code>.</p>
+<pre><code>apex_indices = detector.find_top_k_apex(smoothed, k=config.top_k_apex, height=height_threshold)</code></pre>
+<p>Syarat peak:</p>
+<ul><li>cukup tinggi: lolos <code>height_threshold</code></li><li>cukup menonjol: <code>prominence_threshold</code></li><li>tidak terlalu dekat dengan peak lain: distance/merge threshold</li></ul>
+<p><b>Apex</b> = frame/signal index dengan magnitude puncak event.</p>
+</div>
+
+<h2>8. Phase boundary = onset dan offset</h2>
+<div class="card">
+<p>Setelah apex ketemu, notebook mencari batas kiri dan kanan event:</p>
+<pre><code>phases = detector.find_phase(smoothed, apex_indices)</code></pre>
+<p>Logika sederhana:</p>
+<ul><li>dari apex jalan ke kiri → cari lembah/batas turun → onset</li><li>dari apex jalan ke kanan → cari lembah/batas turun → offset</li><li>pakai cutoff ratio agar batas tidak terlalu jauh</li></ul>
+<p><b>Onset</b> = awal sinyal naik menuju apex. <b>Offset</b> = sinyal selesai turun setelah apex.</p>
+</div>
+
+<h2>9. Duration filtering</h2>
+<div class="card">
+<p>Tidak semua peak valid. Event terlalu pendek dibuang:</p>
+<pre><code>duration = phase['end'] - phase['start']
+if duration &lt; config.min_phase_duration:
+    continue</code></pre>
+<p>Tujuan: noise sesaat tidak dianggap micro-expression event.</p>
+</div>
+
+<h2>10. Output frame onset–apex–offset</h2>
+<div class="card">
+<p>Signal index dikonversi ke frame index:</p>
+<pre><code>def signal_index_to_frame_index(signal_index):
+    return signal_index + 1</code></pre>
+<p>Kenapa +1? Karena magnitude index 0 berasal dari perbandingan frame 0 → frame 1, jadi event signal index 0 ditandai pada frame 1.</p>
+<p>Output metadata:</p>
+<pre><code>onset_frame, apex_frame, offset_frame, duration</code></pre>
+</div>
+
+<h2>Narasi presentasi 60 detik</h2>
+<div class="card">
+<p>“Spotting dimulai dari tiga ROI wajah: mata-alis kanan, mata-alis kiri, dan mulut. Untuk setiap pasangan frame berurutan, POC-ABS menghitung pergerakan block pada tiap ROI. Magnitude block dirata-rata menjadi nilai magnitude ROI, lalu tiga ROI dirata-rata menjadi magnitude signal.”</p>
+<p>“Magnitude signal kemudian dihaluskan agar noise kecil tidak dianggap event. Dari smoothed signal, threshold dihitung menggunakan mean plus standar deviasi. Peak yang melewati threshold dan cukup menonjol dipilih sebagai apex.”</p>
+<p>“Setelah apex ditemukan, sistem mencari batas kiri dan kanan phase untuk menentukan onset dan offset. Event yang durasinya terlalu pendek dibuang. Hasil akhirnya adalah frame onset, apex, dan offset untuk setiap event yang terdeteksi.”</p>
+</div>
+
+<h2>Soal ABC</h2>
+<div class="quiz">
+<p><b>1. Apex dicari dari sinyal apa?</b></p><ol class="abc" type="A"><li>Raw frame RGB</li><li>Smoothed magnitude signal</li><li>File metadata Excel</li></ol>
+<p><b>2. Threshold di notebook dihitung sebagai...</b></p><ol class="abc" type="A"><li>mean + std</li><li>median saja</li><li>nilai maksimum</li></ol>
+<p><b>3. Onset adalah...</b></p><ol class="abc" type="A"><li>awal event sebelum apex</li><li>puncak tertinggi event</li><li>label klasifikasi akhir</li></ol>
+<p><b>4. Duration filtering membuang event yang...</b></p><ol class="abc" type="A"><li>terlalu pendek</li><li>terlalu terang</li><li>terlalu banyak ROI</li></ol>
+<p><b>5. Magnitude signal berasal dari...</b></p><ol class="abc" type="A"><li>rata-rata gerak ROI per frame-pair</li><li>nama file gambar</li><li>hasil predictor TABR</li></ol>
+<p><b>Kunci:</b> 1B, 2A, 3A, 4A, 5A.</p>
+</div>
+<p>Reference: <a href="../reference/spotting-onset-apex-offset.html">Spotting OAO Reference</a></p>
+</body></html>

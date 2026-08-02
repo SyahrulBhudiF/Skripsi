@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Simulasi Sidang Versi Detail</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;max-width:960px;margin:38px auto;line-height:1.7;color:#111}
+h1{font-size:30px;margin-bottom:4px}
+.sub{color:#555;font-size:16px}
+h2{font-size:21px;margin-top:30px;border-bottom:2px solid #7779c4;padding-bottom:6px}
+.q{background:#fff7ed;border-left:4px solid #e07a1f;padding:14px 18px;margin:14px 0;border-radius:0 8px 8px 0}
+.a{background:#eef9f0;border-left:4px solid #2e9d4d;padding:14px 18px;margin:6px 0 18px 0;border-radius:0 8px 8px 0}
+.qnum{font-weight:800;color:#e07a1f}
+.tag{display:inline-block;background:#7779c4;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;margin-right:6px}
+code{background:#eee;padding:2px 5px;border-radius:4px}
+.tip{background:#f6f7ff;border-radius:10px;padding:14px 18px;margin:12px 0}
+.concept{background:#fafafa;border:1px solid #e5e5e5;border-radius:10px;padding:14px 18px;margin:10px 0}
+hr{border:none;border-top:1px solid #ddd;margin:30px 0}
+</style>
+</head>
+<body>
+
+<h1>Simulasi Sidang Skripsi — Versi Detail</h1>
+<p class="sub">Pertanyaan umum + teoritis + implementasi. Ada penjelasan konsep di setiap blok.</p>
+
+<!-- ===== KONSEP DASAR ===== -->
+<h2><span class="tag">KONSEP</span> Fondasi yang Harus Dikuasai</h2>
+
+<div class="concept">
+<p class="qnum">Polynomial itu apa?</p>
+<p>Polynomial = rumus matematika yang terdiri dari perkalian variabel dengan pangkat.</p>
+<p>Contoh:</p>
+<pre><code>y = 2x^2 + 3x + 1</code></pre>
+<p>Polynomial orde 2 (kuadrat) = bisa membentuk lengkungan parabola.</p>
+<p>Polynomial orde 3 (kubik) = bisa membentuk lengkungan lebih fleksibel.</p>
+<p>Polynomial orde tinggi = bisa mengikuti bentuk sangat kompleks, termasuk noise.</p>
+<p>Dalam Savitzky-Golay, polynomial dipakai untuk "menggambar" kurva yang paling cocok mengikuti beberapa titik data. Lalu nilai tengah kurva itu yang dipakai sebagai hasil smoothing.</p>
+</div>
+
+<div class="concept">
+<p class="qnum">Fase dalam Fourier itu apa?</p>
+<p>Setiap gambar bisa diuraikan menjadi kombinasi gelombang frekuensi.</p>
+<p>Hasil Fourier punya dua informasi:</p>
+<ul>
+<li><b>Magnitude</b> = seberapa kuat tiap frekuensi</li>
+<li><b>Fase</b> = di mana posisi gelombang itu dimulai</li>
+</ul>
+<p>Fase = informasi posisi pola dalam gambar. Ketika pola bergeser, fasenya berubah. Itulah yang dipakai POC untuk mendeteksi pergeseran.</p>
+</div>
+
+<div class="concept">
+<p class="qnum">Euclidean distance (L2) itu apa?</p>
+<p>Jarak lurus antara dua titik dalam ruang.</p>
+<pre><code>d = sqrt((x1-x2)^2 + (y1-y2)^2)</code></pre>
+<p>Semakin kecil jarak, semakin mirip dua vektor. FAISS memakai jarak ini untuk mencari tetangga terdekat.</p>
+</div>
+
+<hr>
+
+<!-- ===== POC-ABS ===== -->
+<h2><span class="tag">POC-ABS</span> Pertanyaan Teoritis</h2>
+
+<div class="q"><span class="qnum">1.</span> Jelaskan secara detail bagaimana POC-ABS bekerja dari awal sampai menghasilkan motion vector. Sebutkan setiap tahapannya.</div>
+<div class="a"><b>Jawaban:</b>
+<ol>
+<li>ROI frame t dan frame t+1 dibagi jadi blok-blok kecil (misal 5x5 pixel).</li>
+<li>Tiap blok dari frame t dan frame t+1 di-transformasi Fourier 2D menghasilkan F(k1,k2) dan G(k1,k2).</li>
+<li>Cross-spectrum dihitung: R = F x G_complex_conjugate / abs(F x G_complex_conjugate). Hasilnya hanya menyimpan informasi fase.</li>
+<li>Inverse Fourier dari R menghasilkan peta korelasi. Puncak tertinggi = posisi pergeseran.</li>
+<li>Dari posisi puncak: X = pergeseran horizontal, Y = pergeseran vertikal.</li>
+<li>X dan Y dikonversi ke polar: theta = arah, magnitude = besar gerak.</li>
+</ol>
+</div>
+
+<div class="q"><span class="qnum">2.</span> Mengapa POC membuang informasi magnitude dari Fourier? Bukankah magnitude juga penting?</div>
+<div class="a"><b>Jawaban:</b> Magnitude dari Fourier mencerminkan kekuatan frekuensi (kontras, tekstur). Untuk pencocokan posisi, yang penting adalah di mana pola itu berada, bukan seberapa kuat frekuensinya. Dengan membuang magnitude dan hanya memakai fase, POC menjadi lebih fokus pada pergeseran geometris dan lebih robust terhadap perbedaan kecerahan.</div>
+
+<div class="q"><span class="qnum">3.</span> Bandingkan POC-ABS dengan Optical Flow dari sisi kecepatan, akurasi, dan kompleksitas.</div>
+<div class="a"><b>Jawaban:</b>
+<ul>
+<li><b>Kecepatan</b>: POC-ABS 0.03 detik/frame, optical flow lebih berat karena memproses per-pixel.</li>
+<li><b>Akurasi</b>: optical flow lebih presisi per-pixel, POC-ABS lebih kasar per-block tapi cukup untuk micro-expression.</li>
+<li><b>Kompleksitas</b>: POC-ABS lebih sederhana, tidak butuh iterasi konvergensi seperti optical flow.</li>
+<li><b>Rotasi/deformasi</b>: optical flow lebih baik, POC-ABS hanya menangkap translasi.</li>
+</ul>
+</div>
+
+<div class="q"><span class="qnum">4.</span> Apa yang dimaksud dengan "subpixel accuracy" dalam POC? Apakah POC-ABS mencapainya?</div>
+<div class="a"><b>Jawaban:</b> Subpixel accuracy = kemampuan mendeteksi pergeseran kurang dari 1 pixel. POC secara teori bisa mencapainya karena puncak korelasi bisa diestimasi lebih presisi dari posisi diskrit. Namun POC-ABS dalam implementasi ini memakai posisi puncak diskrit, jadi akurasinya setidaknya setepat 1 pixel.</div>
+
+<div class="q"><span class="qnum">5.</span> Mengapa ROIs dipilih hanya 3: mata-alis kanan, mata-alis kiri, dan mulut? Mengapa bukan seluruh wajah atau 5 area terpisah?</div>
+<div class="a"><b>Jawaban:</b>
+<ul>
+<li><b>Mata-alis</b>: area utama micro-expression (emosi takut, sedih, terkejut).</li>
+<li><b>Mulut</b>: area penting untuk ekspresi senang/jijik.</li>
+<li><b>Digabung</b>: mata+alis = satu unit fungsional karena alis dan mata bergerak bersama saat ekspresi.</li>
+<li><b>Bukan seluruh wajah</b>: terlalu luas, noise meningkat, gerakan halus tenggelam.</li>
+<li><b>Bukan 5 area terpisah</b>: terlalu banyak fitur, risiko overfitting, komputasi meningkat tanpa peningkatan akurasi signifikan.</li>
+</ul>
+</div>
+
+<div class="q"><span class="qnum">6.</span> Jika block size diubah dari 5x5 menjadi 3x3, apa yang terjadi pada akurasi dan komputasi?</div>
+<div class="a"><b>Jawaban:</b> Block lebih kecil = lebih banyak block per ROI = lebih banyak fitur = potensi akurasi naik (gerakan lebih halus terdeteksi). Tapi komputasi meningkat karena lebih banyak Fourier transform yang harus dihitung. Trade-off antara akurasi dan kecepatan.</div>
+
+<hr>
+
+<!-- ===== SAVITZKY-GOLAY ===== -->
+<h2><span class="tag">SAVGOL</span> Savitzky-Golay dalam Bahasa Sederhana</h2>
+
+<div class="q"><span class="qnum">7.</span> Jelaskan Savitzky-Golay dengan analogi sehari-hari. Apa yang dilakukannya terhadap sinyal?</div>
+<div class="a"><b>Jawaban:</b>
+<p><b>Analogi:</b> Bayangkan kamu punya karet elastis sepanjang 5 titik data. Kamu letakkan karet itu di atas titik-titik itu, lalu kamu tekuk karet supaya paling pas mengikuti bentuknya. Nilai titik tengah kamu ganti berdasarkan lengkungan karet, bukan titik asli. Kemudian kamu geser karet ke posisi berikutnya, ulangi proses yang sama. Setelah semua titik selesai, sinyal jadi lebih mulus tapi bentuk naik-turunnya masih terlihat.</p>
+<p><b>Bahasa teknis:</b> Savitzky-Golay adalah local polynomial regression. Untuk setiap titik, ia mengambil window tetangga, fit polynomial least-squares, ambil nilai tengah dari kurva fit.</p>
+</div>
+
+<div class="q"><span class="qnum">8.</span> Mengapa Savitzky-Golay lebih baik dari simple moving average untuk deteksi apex?</div>
+<div class="a"><b>Jawaban:</b>
+<ul>
+<li><b>Moving average</b>: semua titik dalam window dirata-ratakan. Peak jadi turun dan melebar. Bentuk asli hilang.</li>
+<li><b>Savitzky-Golay</b>: polynomial mengikuti bentuk lokal. Peak masih terlihat jelas karena kurva mengikuti lengkungan, bukan sekadar meratakan.</li>
+</ul>
+<p>Untuk spotting, apex harus terdeteksi dengan posisi dan tinggi yang akurat. Savitzky-Golay menjaga itu.</p>
+</div>
+
+<div class="q"><span class="qnum">9.</span> Apa bedanya window_length=5 dan window_length=21? Kapan pakai mana?</div>
+<div class="a"><b>Jawaban:</b>
+<ul>
+<li><b>Window 5</b>: melihat 5 titik tetangga. Smoothing ringan. Masih ada noise kecil. Cocok untuk sinyal pendek atau peak sempit.</li>
+<li><b>Window 21</b>: melihat 21 titik. Smoothing kuat. Noise hilang, tapi peak bisa melebar/gepeng. Cocok untuk sinyal panjang atau noise berat.</li>
+</ul>
+<p>Di kode kamu: window adaptif 5% panjang sinyal, minimal 5, maksimal 31.</p>
+</div>
+
+<div class="q"><span class="qnum">10.</span> Apa itu polyorder? Jelaskan bedanya orde 2, 3, dan 4 dengan bahasa sederhana.</div>
+<div class="a"><b>Jawaban:</b>
+<ul>
+<li><b>Polyorder 2 (kuadrat)</b>: kurva bisa membentuk satu lengkungan sederhana seperti parabola. Kaku, tidak banyak mengikuti noise.</li>
+<li><b>Polyorder 3 (kubik)</b>: lebih fleksibel, bisa membentuk lengkungan naik-turun. Cukup untuk sebagian besar sinyal.</li>
+<li><b>Polyorder 4</b>: sangat fleksibel, bisa mengikuti bentuk kompleks. Tapi terlalu tinggi bisa mengikuti noise juga.</li>
+</ul>
+<p>Di kode: orde naik seiring window membesar.</p>
+</div>
+
+<div class="q"><span class="qnum">11.</span> Apa yang terjadi jika window_length melebihi panjang sinyal?</div>
+<div class="a"><b>Jawaban:</b> Savitzky-Golay tidak bisa jalan. Window harus lebih kecil dari panjang sinyal. Kalau window lebih besar, tidak ada cukup titik untuk di-fit. Kode akan raise ValueError.</div>
+
+<hr>
+
+<!-- ===== FAISS ===== -->
+<h2><span class="tag">FAISS</span> Similarity Search</h2>
+
+<div class="q"><span class="qnum">12.</span> FAISS digunakan di TABR untuk apa tepatnya? Jelaskan input dan output FAISS dalam konteks TABR.</div>
+<div class="a"><b>Jawaban:</b> FAISS mencari k-nearest neighbor dari vektor query di antara kandidat. Input: vektor query k (representasi input) dan candidate_k (representasi semua data train). Output: distances (jarak) dan context_idx (indeks tetangga terdekat).</div>
+
+<div class="q"><span class="qnum">13.</span> Apa itu IndexFlatL2? Kenapa TABR memilih index ini, bukan index approximate seperti IVF atau HNSW?</div>
+<div class="a"><b>Jawaban:</b> IndexFlatL2 = exact brute-force L2 search. Tidak butuh training index, hasilnya tepat 100%. Untuk dataset kecil-medium seperti skripsi, flat search sudah cukup cepat. Index approximate (IVF, HNSW) baru dibutuhkan untuk dataset jutaan vektor.</div>
+
+<div class="q"><span class="qnum">14.</span> Dalam kode TABR, self.search_index.reset() dipanggil sebelum add(). Kenapa?</div>
+<div class="a"><b>Jawaban:</b> Karena representasi kandidat berubah setiap training step (encoder masih belajar). Index harus diisi ulang dengan candidate_k terbaru. Kalau tidak di-reset, index berisi vektor kandidat versi lama.</div>
+
+<div class="q"><span class="qnum">15.</span> Saat training, mengapa data input sendiri harus dibuang dari hasil pencarian FAISS?</div>
+<div class="a"><b>Jawaban:</b> Mencegah data leakage. Jika input menemukan dirinya sendiri sebagai tetangga terdekat, model bisa "mencontek" label sendiri tanpa benar-benar belajar dari data lain. Kode: jarak ke diri sendiri di-set inf, lalu dibuang.</div>
+
+<hr>
+
+<!-- ===== TABR ===== -->
+<h2><span class="tag">TABR</span> Arsitektur & Retrieval</h2>
+
+<div class="q"><span class="qnum">16.</span> Jelaskan alur lengkap TABR dari input sampai output. Sebutkan semua komponen utama.</div>
+<div class="a"><b>Jawaban:</b> Input data tabular (numerik, biner, kategorikal) → Encoder mengubah jadi representasi laten (vektor angka internal) → Key k dihitung dari representasi → FAISS search mencari tetangga terdekat → context_idx → ambil label tetangga + hitung selisih representasi (k - context_k) → bobot kemiripan dihitung → context_x dibentuk → residual add x = x + context_x → Predictor (blocks + head) → output logits → softmax → prediksi kelas.</div>
+
+<div class="q"><span class="qnum">17.</span> Apa bedanya encoder dan predictor dalam TABR? Kenapa tidak digabung jadi satu?</div>
+<div class="a"><b>Jawaban:</b> Encoder mengubah fitur mentah jadi representasi laten. Predictor mengubah representasi final (setelah context ditambahkan) jadi skor kelas. Dipisah karena encoder bekerja sebelum retrieval, predictor bekerja setelah retrieval + residual add. Mereka punya tugas berbeda.</div>
+
+<div class="q"><span class="qnum">18.</span> Apa itu "residual add" di TABR (x = x + context_x)? Mengapa bukan x = context_x?</div>
+<div class="a"><b>Jawaban:</b> Residual add = menambahkan informasi baru ke informasi lama tanpa membuang lama. Kalau x = context_x, informasi asli input hilang total. Dengan residual, identitas input tetap ada, diperkaya oleh context. Ini prinsip umum di deep learning (ResNet, Transformer).</div>
+
+<div class="q"><span class="qnum">19.</span> Dalam TABR, context dibentuk dari label tetangga dan selisih representasi. Apa makna k - context_k?</div>
+<div class="a"><b>Jawaban:</b> Selisih antara representasi input dan representasi tetangga. Ini memberi tahu model: "seberapa berbeda input ini dari tetangganya". Makin kecil selisih, makin mirip. Makin besar, makin berbeda. Model belajar menggunakan informasi ini untuk memperbaiki prediksi.</div>
+
+<div class="q"><span class="qnum">20.</span> Apa yang terjadi jika context_size di-set terlalu besar (misal 50)?</div>
+<div class="a"><b>Jawaban:</b> Terlalu banyak tetangga, termasuk yang tidak mirip. Context jadi noisy. Bobot kemiripan menyebar ke banyak tetangga, termasuk yang tidak relevan. Akurasi bisa turun karena signal tenggelam dalam noise.</div>
+
+<hr>
+
+<!-- ===== SPOTTING ===== -->
+<h2><span class="tag">SPOTTING</span> Onset-Apex-Offset</h2>
+
+<div class="q"><span class="qnum">21.</span> Jelaskan alur spotting dari magnitude mentah sampai output onset-apex-offset. Sebutkan semua tahapan.</div>
+<div class="a"><b>Jawaban:</b> Magnitude mentah → smoothing (Savitzky-Golay) → threshold (mean + std) → peak detection (apex dengan prominence + distance) → phase boundary (onset/offset dari valley + cutoff ratio) → duration filtering (buang event terlalu pendek) → output frame onset-apex-offset.</div>
+
+<div class="q"><span class="qnum">22.</span> Mengapa threshold menggunakan mean + std, bukan hanya mean?</div>
+<div class="a"><b>Jawaban:</b> Mean saja terlalu rendah, banyak noise akan lolos. Mean + std memastikan peak harus lebih tinggi dari level normal DAN lebih tinggi dari variasi noise. Ini menaikkan spesifitas deteksi.</div>
+
+<div class="q"><span class="qnum">23.</span> Apa bedanya height threshold dan prominence threshold dalam deteksi apex?</div>
+<div class="a"><b>Jawaban:</b> Height = puncak harus setinggi X dari permukaan laut. Prominence = puncak harus menonjol dari lembah sekitar. Peak bisa tinggi tapi kurang menonjol (prominence kecil), atau menonjol tapi tidak terlalu tinggi. Keduanya harus terpenuhi agar apex valid.</div>
+
+<div class="q"><span class="qnum">24.</span> Dalam ApexPhase.find_phase(), bagaimana onset dan offset ditentukan? Jelaskan dua langkahnya.</div>
+<div class="a"><b>Jawaban:</b>
+<ul>
+<li><b>Langkah 1 (cari valley)</b>: dari apex jalan ke kiri/kanan, track running minimum. Berhenti jika sinyal naik signifikan (valley_uptick_threshold).</li>
+<li><b>Langkah 2 (cari threshold)</b>: dari valley, hitung threshold = local_min + (apex - local_min) x cutoff_ratio. Onset = titik pertama dari apex ke kiri yang di bawah threshold. Offset = titik pertama dari apex ke kanan yang di bawah threshold.</li>
+</ul>
+</div>
+
+<div class="q"><span class="qnum">25.</span> Mengapa sinyal index perlu dikonversi ke frame index (+1)?</div>
+<div class="a"><b>Jawaban:</b> Magnitude index 0 berasal dari perbandingan frame[0] ke frame[1], jadi representasi gerakan pada frame 1. Maka frame_index = signal_index + 1.</div>
+
+<hr>
+
+<!-- ===== INTEGRASI ===== -->
+<h2><span class="tag">INTEGRASI</span> Hubungan Antar Komponen</h2>
+
+<div class="q"><span class="qnum">26.</span> Jelaskan alur lengkap dari frame mentah CASME sampai output prediksi anxiety. Sebutkan semua komponen.</div>
+<div class="a"><b>Jawaban:</b> Frame → ROI extraction (landmark wajah) → POC-ABS per block → magnitude per ROI → mean magnitude per frame-pair → magnitude signal → smoothing (Savitzky-Golay) → threshold (mean + std) → apex detection → phase boundary → event onset-apex-offset → fitur event → TABR: encoder → latent z → FAISS search tetangga → context → residual add → predictor → outputanxiety tinggi/rendah.</div>
+
+<div class="q"><span class="qnum">27.</span> Jika smoothing dihapus, apa dampaknya ke seluruh pipeline?</div>
+<div class="a"><b>Jawaban:</b> Noise meningkat → peak palsu banyak → apex salah → onset/offset tidak akurat → fitur event buruk → prediksi TABR tidak akurat. Seluruh pipeline terpengaruh karena smoothing adalah fondasi kualitas sinyal.</div>
+
+<div class="q"><span class="qnum">28.</span> Mengapa 3 ROI (mata-alis kanan, mata-alis kiri, mulut) dirata-ratakan menjadi satu nilai? Bukan diproses terpisah?</div>
+<div class="a"><b>Jawaban:</b> Untuk spotting: perlu satu sinyal ringkas yang mewakili gerakan wajah secara keseluruhan. Rata-rata memberi gambaran umum kekuatan gerak. Untuk TABR: fitur per ROI bisa dipakai sebagai input terpisah, tergantung desain eksperimen.</div>
+
+<div class="q"><span class="qnum">29.</span> Apa kelemahan utama pendekatan POC-ABS untuk micro-expression spotting?</div>
+<div class="a"><b>Jawaban:</b>
+<ul>
+<li>Hanya mendeteksi translasi, bukan rotasi/deformasi.</li>
+<li>Sensitif terhadap perubahan pencahayaan.</li>
+<li>Membutuhkan landmark wajah yang stabil.</li>
+<li>Block matching bisa melewatkan gerakan non-translational.</li>
+<li>Akurasi sangat bergantung pada block size.</li>
+</ul>
+</div>
+
+<div class="q"><span class="qnum">30.</span> Jika ditanya penguji: "Mengapa tidak pakai optical flow saja?", apa jawaban kamu?</div>
+<div class="a"><b>Jawaban:</b> Optical flow lebih akurat untuk gerakan kompleks, tapi komputasinya berat. POC-ABS lebih ringan (0.03 detik/frame). Untuk micro-expression yang butuh kecepatan, POC-ABS cukup kompetitif dengan akurasi 95.6% (paper Rosiani et al.). Selain itu, POC-ABS lebih sederhana diimplementasikan dan tidak butuh parameter tuning seperti optical flow.</div>
+
+<hr>
+
+<div class="tip">
+<p><b>Cara latihan sidang:</b></p>
+<ol>
+<li>Tutup jawaban. Baca pertanyaan.</li>
+<li>Jawab dengan suara keras seolah penguji bertanya.</li>
+<li>Buka jawaban. Cek mana yang belum lancar.</li>
+<li>Ulangi yang belum lancar sampai lancar.</li>
+<li>Rekam diri sendiri. Putar ulang. Cek kejelasan bicara.</li>
+</ol>
+<p><i>Untuk pertanyaan tambahan atau penjelasan bagian tertentu, tanya agent.</i></p>
+</div>
+
+</body>
+</html>
