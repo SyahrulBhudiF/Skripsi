@@ -24,3 +24,6 @@ __pycache__/
 .claude/
 AGENTS.md
 *.md
+casme2/
+opticalflow/
+tabular-dl-tabr-official/
